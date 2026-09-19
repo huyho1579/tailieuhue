@@ -1,32 +1,42 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ThumbsUp, MessageCircle, Bookmark, Share2 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { useCommunityStore } from "@/lib/store/communityStore";
 
 interface ReactionBarProps {
+  postId?: string;
   likes: number;
   comments: number;
   bookmarks: number;
 }
 
 export function ReactionBar({
+  postId,
   likes: initialLikes,
   comments,
   bookmarks: initialBookmarks,
 }: ReactionBarProps) {
-  const [liked, setLiked] = useState(false);
-  const [bookmarked, setBookmarked] = useState(false);
-  const [likes, setLikes] = useState(initialLikes);
-  const [bookmarks, setBookmarks] = useState(initialBookmarks);
+  const { toggleLike, isLiked, toggleBookmark, isBookmarked } = useCommunityStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const liked = mounted && postId ? isLiked(postId) : false;
+  const bookmarked = mounted && postId ? isBookmarked(postId) : false;
 
   const handleLike = () => {
-    setLiked(!liked);
-    setLikes(liked ? likes - 1 : likes + 1);
+    if (postId) {
+      toggleLike(postId);
+    }
   };
 
   const handleBookmark = () => {
-    setBookmarked(!bookmarked);
-    setBookmarks(bookmarked ? bookmarks - 1 : bookmarks + 1);
+    if (postId) {
+      toggleBookmark(postId);
+    }
   };
 
   return (
@@ -41,7 +51,7 @@ export function ReactionBar({
         )}
       >
         <ThumbsUp className={cn("w-4 h-4 transition-transform", liked && "scale-110 fill-current")} />
-        <span>Thích ({likes})</span>
+        <span>Thích ({initialLikes})</span>
       </button>
 
       <button className="flex items-center gap-2 px-4 py-2 rounded-[10px] text-sm font-semibold bg-slate-50 text-slate-600 border border-slate-200 hover:border-blue-200 hover:text-blue-600 transition-all cursor-pointer">
@@ -59,7 +69,7 @@ export function ReactionBar({
         )}
       >
         <Bookmark className={cn("w-4 h-4 transition-transform", bookmarked && "fill-current scale-110")} />
-        <span>Lưu bài ({bookmarks})</span>
+        <span>Lưu bài ({initialBookmarks})</span>
       </button>
 
       <button

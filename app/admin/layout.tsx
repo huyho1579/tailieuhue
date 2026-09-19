@@ -37,7 +37,7 @@ export default function AdminLayout({
   const { currentUser, isAdmin, loginAdmin, logoutAdmin } = useAuthStore();
 
   // State cho form đăng nhập Admin
-  const [email, setEmail] = useState("huyho1579@gmail.com");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -108,7 +108,7 @@ export default function AdminLayout({
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="huyho1579@gmail.com"
+                    placeholder="Nhập email quản trị viên..."
                     className="w-full pl-10 pr-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-[10px] text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all font-medium"
                   />
                 </div>
@@ -139,9 +139,7 @@ export default function AdminLayout({
               </div>
 
               <div className="p-3 bg-slate-800/50 rounded-[10px] border border-slate-800 text-[11px] text-slate-400 leading-relaxed">
-                <span className="text-amber-400 font-semibold">Ghi chú xác thực:</span> Nhập tài khoản{" "}
-                <code className="text-slate-200">huyho1579@gmail.com</code> và mật khẩu{" "}
-                <code className="text-slate-200">123321</code> để truy cập.
+                <span className="text-amber-400 font-semibold">Bảo mật hệ thống:</span> Vui lòng nhập đúng tài khoản và mật khẩu quản trị viên được cấp quyền để truy cập.
               </div>
 
               <button

@@ -75,12 +75,11 @@ export default function RegisterPage() {
         </div>
 
         <div className="bg-white border border-slate-200 rounded-[20px] p-8 shadow-[0_4px_20px_rgba(15,23,42,0.06)]">
-          {/* Nút Đăng ký bằng Google trực tiếp */}
+          {/* Nút Đăng ký bằng Google */}
           <button
             type="button"
-            onClick={handleGoogleRegister}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-3 py-3 border border-slate-200 rounded-[10px] text-sm font-semibold text-slate-700 hover:border-blue-400 hover:bg-blue-50/40 transition-all mb-5 cursor-pointer shadow-xs disabled:opacity-70"
+            onClick={() => setIsGoogleModalOpen(true)}
+            className="w-full flex items-center justify-center gap-3 py-3 border border-slate-200 rounded-[10px] text-sm font-semibold text-slate-700 hover:border-blue-400 hover:bg-blue-50/40 transition-all mb-5 cursor-pointer shadow-xs"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path

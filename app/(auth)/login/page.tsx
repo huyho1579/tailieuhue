@@ -3,10 +3,9 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, ShieldAlert } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { GoogleAuthModal } from "@/components/shared/GoogleAuthModal";
-import { signInWithGoogle } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,21 +15,6 @@ export default function LoginPage() {
   const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
 
   const { loginRegularUser, loginAdmin } = useAuthStore();
-
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    try {
-      const res = await signInWithGoogle();
-      if (res?.error) {
-        console.warn("Lỗi chuyển hướng Google:", res.error);
-        setIsGoogleModalOpen(true);
-      }
-    } catch {
-      setIsGoogleModalOpen(true);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,12 +61,11 @@ export default function LoginPage() {
         </div>
 
         <div className="bg-white border border-slate-200 rounded-[20px] p-8 shadow-[0_4px_20px_rgba(15,23,42,0.06)]">
-          {/* Nút Đăng nhập Google trực tiếp */}
+          {/* Nút Đăng nhập Google mở hộp thoại chọn/nhập tài khoản Google */}
           <button
             type="button"
-            onClick={handleGoogleLogin}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-3 py-3 border border-slate-200 rounded-[10px] text-sm font-semibold text-slate-700 hover:border-blue-400 hover:bg-blue-50/40 transition-all mb-5 cursor-pointer shadow-xs disabled:opacity-70"
+            onClick={() => setIsGoogleModalOpen(true)}
+            className="w-full flex items-center justify-center gap-3 py-3 border border-slate-200 rounded-[10px] text-sm font-semibold text-slate-700 hover:border-blue-400 hover:bg-blue-50/40 transition-all mb-5 cursor-pointer shadow-xs"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path
@@ -102,7 +85,7 @@ export default function LoginPage() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            {loading ? "Đang kết nối Google..." : "Đăng nhập thẳng với Google"}
+            Đăng nhập với Google
           </button>
 
           <div className="relative mb-5">
@@ -166,17 +149,6 @@ export default function LoginPage() {
               {loading ? "Đang đăng nhập..." : "Đăng nhập ngay"}
             </button>
           </form>
-
-          {/* Admin link helper */}
-          <div className="mt-6 pt-4 border-t border-slate-100 text-center">
-            <Link
-              href="/admin"
-              className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-amber-700 transition-colors"
-            >
-              <ShieldAlert className="w-3.5 h-3.5 text-amber-600" />
-              Đăng nhập trang Quản trị viên (Admin)
-            </Link>
-          </div>
         </div>
 
         <p className="text-center text-sm text-slate-500 mt-5">
@@ -190,7 +162,7 @@ export default function LoginPage() {
         </p>
       </div>
 
-      {/* Google Sign In Modal (Dự phòng khi chưa bật Google OAuth trên Supabase) */}
+      {/* Google Sign In Modal */}
       <GoogleAuthModal
         isOpen={isGoogleModalOpen}
         onClose={() => setIsGoogleModalOpen(false)}

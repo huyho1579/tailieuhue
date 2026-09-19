@@ -23,6 +23,8 @@ const NAV_LINKS = [
   { label: "AI Học tập", href: "#", icon: Sparkles, badge: "Sắp ra mắt" },
 ];
 
+import { signOut } from "@/lib/supabase/client";
+
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -33,6 +35,11 @@ export function Header() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleLogout = async () => {
+    await signOut();
+    logoutUser();
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-slate-200 h-[68px]">
@@ -138,7 +145,7 @@ export function Header() {
                 </div>
               </Link>
               <button
-                onClick={() => logoutUser()}
+                onClick={handleLogout}
                 title="Đăng xuất"
                 className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-[8px] transition-colors cursor-pointer"
               >
@@ -207,10 +214,10 @@ export function Header() {
                 </Link>
                 <button
                   onClick={() => {
-                    logoutUser();
+                    handleLogout();
                     setMobileOpen(false);
                   }}
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2 text-red-600 text-xs font-semibold"
+                  className="flex items-center justify-center gap-2 w-full px-4 py-2 text-red-600 text-xs font-semibold cursor-pointer"
                 >
                   Đăng xuất
                 </button>

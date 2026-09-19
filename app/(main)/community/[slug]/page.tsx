@@ -24,14 +24,10 @@ export default function PostDetailPage({
 }) {
   const router = useRouter();
   const { slug } = use(params);
-  const { posts, deletePost } = useCommunityStore();
+  const { posts, deletePost, addComment, getCommentsByPostId } = useCommunityStore();
   const { isAdmin, currentUser } = useAuthStore();
   const [mounted, setMounted] = useState(false);
-
-  const [comment, setComment] = useState("");
-  const [comments, setComments] = useState<
-    { id: string; name: string; text: string; time: string; likes: number }[]
-  >([]);
+  const [commentText, setCommentText] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -58,6 +54,7 @@ export default function PostDetailPage({
     return null;
   }
 
+  const postComments = mounted ? getCommentsByPostId(post.id) : [];
   const typeConfig = TYPE_CONFIG[post.type] || TYPE_CONFIG.discussion;
   const canDelete = mounted && (isAdmin || (currentUser && currentUser.name === post.author.name));
 
@@ -68,21 +65,21 @@ export default function PostDetailPage({
     }
   };
 
-  const handleComment = (e: React.FormEvent) => {
+  const handleCommentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!comment.trim()) return;
-    setComments([
-      ...comments,
-      {
-        id: Date.now().toString(),
-        name: currentUser?.name || "Hồ Huy (Bạn)",
-        text: comment.trim(),
-        time: "Vừa xong",
-        likes: 0,
-      },
-    ]);
-    setComment("");
+    if (!commentText.trim()) return;
+
+    addComment(
+      post.id,
+      commentText.trim(),
+      currentUser?.name || "Sinh viên HCE"
+    );
+    setCommentText("");
   };
+
+  const userInitials = currentUser?.name
+    ? currentUser.name.slice(0, 2).toUpperCase()
+    : "SV";
 
   return (
     <div className="max-w-[880px] mx-auto px-4 py-8 animate-fade-in">
@@ -169,23 +166,24 @@ export default function PostDetailPage({
           </div>
         )}
 
-        {/* Reactions */}
+        {/* Reactions (Tự động lưu trạng thái Thích & Bookmark khi F5) */}
         <div className="pt-4 border-t border-slate-100">
           <ReactionBar
+            postId={post.id}
             likes={post.likes}
-            comments={post.comments + comments.length}
+            comments={post.comments}
             bookmarks={post.bookmarks}
           />
         </div>
       </article>
 
-      {/* Comments section */}
+      {/* Comments section (Lưu vĩnh viễn, F5 không bị mất) */}
       <div className="bg-white border border-slate-200 rounded-[20px] p-6 md:p-8 shadow-xs">
         <h2 className="font-bold text-slate-950 text-lg mb-6">
-          {comments.length} câu trả lời & thảo luận
+          {postComments.length} câu trả lời & thảo luận
         </h2>
 
-        {comments.length === 0 ? (
+        {postComments.length === 0 ? (
           <div className="text-center py-8 text-slate-400 bg-slate-50 rounded-[12px] border border-dashed border-slate-200 mb-6">
             <p className="text-sm font-semibold text-slate-700">Chưa có bình luận nào</p>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -194,7 +192,7 @@ export default function PostDetailPage({
           </div>
         ) : (
           <div className="space-y-4 mb-6">
-            {comments.map((c) => (
+            {postComments.map((c) => (
               <div key={c.id} className="flex gap-3">
                 <Avatar name={c.name} size="sm" />
                 <div className="flex-1 bg-slate-50 rounded-[16px] p-4 border border-slate-100">
@@ -210,14 +208,14 @@ export default function PostDetailPage({
         )}
 
         {/* Form comment */}
-        <form onSubmit={handleComment} className="flex gap-3 items-start">
+        <form onSubmit={handleCommentSubmit} className="flex gap-3 items-start">
           <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs shrink-0 mt-1">
-            HH
+            {userInitials}
           </div>
           <div className="flex-1 flex gap-2">
             <input
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
               placeholder="Viết câu trả lời hoặc thảo luận cho bạn sinh viên này..."
               className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-[10px] text-sm focus:outline-none focus:border-blue-400 focus:bg-white transition-all"
             />
