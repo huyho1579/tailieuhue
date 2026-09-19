@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { BookOpen } from "lucide-react";
 
 const LINKS = {
@@ -14,7 +15,7 @@ const LINKS = {
     { label: "Quản trị kinh doanh", href: "/tai-lieu" },
     { label: "Tài chính — Ngân hàng", href: "/tai-lieu" },
   ],
-  "EduDocs Huế": [
+  "TailieuHue": [
     { label: "Cộng đồng sinh viên", href: "/community" },
     { label: "Gói tài liệu PRO", href: "/pro" },
     { label: "Về chúng tôi", href: "/about" },
@@ -29,15 +30,22 @@ export function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand */}
           <div>
-            <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-blue-600 rounded-[10px] flex items-center justify-center">
-                <BookOpen className="w-4 h-4 text-white" />
+            <Link href="/" className="flex items-center gap-2.5 mb-4 group">
+              <div className="w-9 h-9 relative rounded-[10px] overflow-hidden border border-blue-100 shadow-2xs">
+                <Image
+                  src="/logo.png"
+                  alt="TailieuHue"
+                  fill
+                  className="object-cover"
+                />
               </div>
-              <span className="font-bold text-slate-950 text-lg">EduDocs Huế</span>
+              <span className="font-extrabold text-blue-600 text-lg">
+                Tailieu<span className="text-amber-500">Hue</span>
+              </span>
             </Link>
             <p className="text-sm text-slate-500 leading-relaxed">
-              Nền tảng chia sẻ và lưu trữ tài liệu học tập chính thức dành riêng cho sinh viên{" "}
-              <strong>Đại học Kinh tế — Đại học Huế</strong>. Học đúng tài liệu, ôn đúng trọng tâm.
+              Kết nối tri thức — Cùng bạn học tốt hơn. Nền tảng chia sẻ và lưu trữ tài liệu học tập chính thức dành riêng cho sinh viên{" "}
+              <strong>Đại học Kinh tế — Đại học Huế</strong>.
             </p>
           </div>
 

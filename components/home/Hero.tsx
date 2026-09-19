@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { SearchBar } from "@/components/shared/SearchBar";
 import { BookOpen, GraduationCap, Building2 } from "lucide-react";
 import { mockDocuments } from "@/lib/data/mock";
@@ -98,6 +99,18 @@ export function Hero() {
           <SearchBar
             placeholder="Tìm đề cương, môn học (Marketing, Vi mô, Kế toán...)"
             size="lg"
+          />
+        </div>
+
+        {/* Official Banner / Thumbnail */}
+        <div className="max-w-[1040px] mx-auto mb-12 rounded-[22px] overflow-hidden shadow-[0_16px_48px_rgba(37,99,235,0.12)] border border-blue-100/80 bg-white">
+          <Image
+            src="/banner.png"
+            alt="TailieuHue — Kết nối tri thức, Cùng bạn học tốt hơn"
+            width={1200}
+            height={400}
+            priority
+            className="w-full h-auto object-cover"
           />
         </div>
 
