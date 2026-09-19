@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { X, Check, ShieldCheck, UserPlus, ArrowRight } from "lucide-react";
+import { X, Check, ShieldCheck, UserPlus, ArrowRight, AlertCircle } from "lucide-react";
 import { useAuthStore, ADMIN_CREDENTIALS } from "@/lib/store/auth";
 import { signInWithGoogle, isSupabaseConfigured } from "@/lib/supabase/client";
 
@@ -50,19 +50,29 @@ export function GoogleAuthModal({
   const [customName, setCustomName] = useState("");
   const [customEmail, setCustomEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const handleSelectAccount = (account: (typeof PRESET_ACCOUNTS)[0]) => {
+    setError(null);
     setSelectedEmail(account.email);
     setLoading(true);
 
     setTimeout(() => {
-      loginWithGoogle({
+      const res = loginWithGoogle({
         email: account.email,
         name: account.name,
         asAdmin: account.isAdmin,
+        mode,
       });
+
+      if (!res.success) {
+        setError(res.error || "Đăng nhập thất bại!");
+        setLoading(false);
+        return;
+      }
+
       setLoading(false);
       onClose();
 
@@ -77,15 +87,24 @@ export function GoogleAuthModal({
   const handleCustomGoogleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!customEmail.trim()) return;
-
+    setError(null);
     setLoading(true);
+
     setTimeout(() => {
       const isAdm = customEmail.trim().toLowerCase() === ADMIN_CREDENTIALS.email;
-      loginWithGoogle({
+      const res = loginWithGoogle({
         email: customEmail.trim(),
         name: customName.trim() || customEmail.split("@")[0],
         asAdmin: isAdm,
+        mode,
       });
+
+      if (!res.success) {
+        setError(res.error || "Đăng nhập thất bại!");
+        setLoading(false);
+        return;
+      }
+
       setLoading(false);
       onClose();
 
@@ -156,6 +175,13 @@ export function GoogleAuthModal({
 
         {/* Content */}
         <div className="p-6 space-y-4">
+          {error && (
+            <div className="p-3.5 bg-red-50 border border-red-200 rounded-[12px] flex items-start gap-2 text-xs text-red-700 animate-fade-in font-semibold">
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+              <p className="flex-1 leading-relaxed">{error}</p>
+            </div>
+          )}
+
           <p className="text-xs text-slate-500 font-medium">
             Chọn tài khoản Google của bạn để liên kết và đăng nhập:
           </p>

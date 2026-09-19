@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { GoogleAuthModal } from "@/components/shared/GoogleAuthModal";
 
@@ -12,25 +12,27 @@ export default function LoginPage() {
   const [showPw, setShowPw] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
 
-  const { loginRegularUser, loginAdmin } = useAuthStore();
+  const { loginUser } = useAuthStore();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setLoading(true);
 
     setTimeout(() => {
-      // Nếu là email admin nhập đúng mật khẩu admin
-      if (
-        form.email.trim().toLowerCase() === "huyho1579@gmail.com" &&
-        form.password === "123321"
-      ) {
-        loginAdmin(form.email, form.password);
+      const res = loginUser(form.email, form.password);
+      if (!res.success) {
+        setError(res.error || "Đăng nhập không thành công!");
+        setLoading(false);
+        return;
+      }
+
+      if (res.isAdmin) {
         router.push("/admin");
       } else {
-        // Đăng nhập tài khoản sinh viên bình thường
-        loginRegularUser(form.email);
         router.push("/dashboard");
       }
       setLoading(false);
@@ -64,7 +66,10 @@ export default function LoginPage() {
           {/* Nút Đăng nhập Google mở hộp thoại chọn/nhập tài khoản Google */}
           <button
             type="button"
-            onClick={() => setIsGoogleModalOpen(true)}
+            onClick={() => {
+              setError(null);
+              setIsGoogleModalOpen(true);
+            }}
             className="w-full flex items-center justify-center gap-3 py-3 border border-slate-200 rounded-[10px] text-sm font-semibold text-slate-700 hover:border-blue-400 hover:bg-blue-50/40 transition-all mb-5 cursor-pointer shadow-xs"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -97,6 +102,24 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {/* Thông báo lỗi nếu tài khoản chưa đăng ký hoặc sai mật khẩu */}
+          {error && (
+            <div className="mb-5 p-3.5 bg-red-50 border border-red-200 rounded-[12px] flex items-start gap-2.5 text-xs text-red-700 animate-fade-in">
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold leading-relaxed">{error}</p>
+                {error.includes("chưa được đăng ký") && (
+                  <Link
+                    href="/register"
+                    className="inline-block mt-1.5 text-blue-600 hover:text-blue-700 font-bold underline"
+                  >
+                    👉 Bấm vào đây để Đăng ký tài khoản miễn phí
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-slate-900 mb-1.5">
@@ -106,7 +129,10 @@ export default function LoginPage() {
                 type="email"
                 required
                 value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                onChange={(e) => {
+                  setForm({ ...form, email: e.target.value });
+                  if (error) setError(null);
+                }}
                 placeholder="sinhvien@hce.edu.vn"
                 className="w-full px-4 py-2.5 border border-slate-200 rounded-[10px] text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all font-medium"
               />
@@ -127,14 +153,17 @@ export default function LoginPage() {
                   type={showPw ? "text" : "password"}
                   required
                   value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  onChange={(e) => {
+                    setForm({ ...form, password: e.target.value });
+                    if (error) setError(null);
+                  }}
                   placeholder="Nhập mật khẩu..."
                   className="w-full px-4 py-2.5 pr-11 border border-slate-200 rounded-[10px] text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all font-medium"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPw(!showPw)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                 >
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -146,7 +175,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-70 text-white font-bold rounded-[10px] transition-colors text-sm shadow-xs cursor-pointer"
             >
-              {loading ? "Đang đăng nhập..." : "Đăng nhập ngay"}
+              {loading ? "Đang kiểm tra tài khoản..." : "Đăng nhập ngay"}
             </button>
           </form>
         </div>

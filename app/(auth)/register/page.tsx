@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Check } from "lucide-react";
+import { Eye, EyeOff, Check, AlertCircle } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { GoogleAuthModal } from "@/components/shared/GoogleAuthModal";
 import { signInWithGoogle } from "@/lib/supabase/client";
@@ -13,9 +13,10 @@ export default function RegisterPage() {
   const [showPw, setShowPw] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
 
-  const { loginRegularUser } = useAuthStore();
+  const { registerUser } = useAuthStore();
 
   const handleGoogleRegister = async () => {
     setLoading(true);
@@ -34,11 +35,31 @@ export default function RegisterPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.password !== form.confirm) return;
+    setError(null);
+    if (form.password !== form.confirm) {
+      setError("Mật khẩu xác nhận không trùng khớp!");
+      return;
+    }
+    if (form.password.length < 6) {
+      setError("Mật khẩu phải chứa ít nhất 6 ký tự!");
+      return;
+    }
+
     setLoading(true);
 
     setTimeout(() => {
-      loginRegularUser(form.email, form.name);
+      const res = registerUser({
+        name: form.name,
+        email: form.email,
+        password: form.password,
+      });
+
+      if (!res.success) {
+        setError(res.error || "Đăng ký không thành công!");
+        setLoading(false);
+        return;
+      }
+
       router.push("/dashboard");
       setLoading(false);
     }, 600);
@@ -110,6 +131,23 @@ export default function RegisterPage() {
               <span className="px-3 bg-white text-xs text-slate-400">hoặc đăng ký với email</span>
             </div>
           </div>
+
+          {error && (
+            <div className="mb-5 p-3.5 bg-red-50 border border-red-200 rounded-[12px] flex items-start gap-2.5 text-xs text-red-700 animate-fade-in">
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold leading-relaxed">{error}</p>
+                {error.includes("đã được đăng ký") && (
+                  <Link
+                    href="/login"
+                    className="inline-block mt-1.5 text-blue-600 hover:text-blue-700 font-bold underline"
+                  >
+                    👉 Bấm vào đây để Đăng nhập ngay
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
