@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bold, Italic, Underline, Link2, Image, Tag, X, ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { useAuthStore } from "@/lib/store/auth";
+import { useCommunityStore } from "@/lib/store/communityStore";
 
 const POST_TYPES = [
   { id: "discussion", label: "Thảo luận môn học" },
@@ -23,6 +25,9 @@ const SUGGESTED_TAGS = [
 
 export default function CreatePostPage() {
   const router = useRouter();
+  const { currentUser } = useAuthStore();
+  const { addPost } = useCommunityStore();
+
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [postType, setPostType] = useState("discussion");
@@ -44,9 +49,31 @@ export default function CreatePostPage() {
   const handleSubmit = (isDraft = false) => {
     if (!title.trim() || !content.trim()) return;
     setSubmitted(true);
+
+    const authorName = currentUser?.name || "Sinh viên HCE";
+    const authorUsername =
+      currentUser?.username ||
+      (currentUser?.email ? currentUser.email.split("@")[0] : "sinhvien");
+    const authorAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+      authorName
+    )}`;
+
+    const newPost = addPost({
+      title: title.trim(),
+      content: content.trim(),
+      type: postType as "discussion" | "qa" | "share" | "experience",
+      author: {
+        name: authorName,
+        username: authorUsername,
+        avatar: authorAvatar,
+      },
+      tags: tags.length > 0 ? tags : ["kinh-te-hue"],
+      authorEmail: currentUser?.email || `${authorUsername}@tailieuhue.com`,
+    });
+
     setTimeout(() => {
-      router.push("/community");
-    }, 600);
+      router.push(`/community/${newPost.slug}`);
+    }, 500);
   };
 
   const selectedType = POST_TYPES.find((t) => t.id === postType)!;

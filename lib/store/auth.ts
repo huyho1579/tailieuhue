@@ -20,6 +20,7 @@ interface AuthState {
     avatar?: string;
     asAdmin?: boolean;
   }) => void;
+  updateProfile: (data: Partial<User>) => void;
   logoutUser: () => void;
 }
 
@@ -98,6 +99,26 @@ export const useAuthStore = create<AuthState>()(
         set({
           currentUser: googleUser,
           isAdmin: isAdminUser,
+        });
+      },
+
+      updateProfile: (data: Partial<User>) => {
+        set((state) => {
+          if (!state.currentUser) return state;
+          const updatedUser: User = {
+            ...state.currentUser,
+            ...data,
+          };
+          const isAdminUser =
+            updatedUser.email.trim().toLowerCase() === ADMIN_CREDENTIALS.email;
+          if (isAdminUser) {
+            updatedUser.role = "admin";
+            updatedUser.isPro = true;
+          }
+          return {
+            currentUser: updatedUser,
+            isAdmin: isAdminUser,
+          };
         });
       },
 

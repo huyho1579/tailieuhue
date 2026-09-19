@@ -31,7 +31,13 @@ export function PostCard({ post, className }: PostCardProps) {
     setMounted(true);
   }, []);
 
-  const canDelete = mounted && (isAdmin || (currentUser && currentUser.name === post.author.name));
+  const canDelete =
+    mounted &&
+    (isAdmin ||
+      (currentUser &&
+        (currentUser.name === post.author.name ||
+          currentUser.username === post.author.username ||
+          (currentUser.email && post.author.username === currentUser.email.split("@")[0]))));
 
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();

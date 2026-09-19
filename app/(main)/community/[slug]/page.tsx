@@ -56,7 +56,13 @@ export default function PostDetailPage({
 
   const postComments = mounted ? getCommentsByPostId(post.id) : [];
   const typeConfig = TYPE_CONFIG[post.type] || TYPE_CONFIG.discussion;
-  const canDelete = mounted && (isAdmin || (currentUser && currentUser.name === post.author.name));
+  const canDelete =
+    mounted &&
+    (isAdmin ||
+      (currentUser &&
+        (currentUser.name === post.author.name ||
+          currentUser.username === post.author.username ||
+          (currentUser.email && post.author.username === currentUser.email.split("@")[0]))));
 
   const handleDelete = () => {
     if (confirm(`Bạn có chắc chắn muốn xóa bài viết "${post.title}" không? Hành động này không thể hoàn tác.`)) {
