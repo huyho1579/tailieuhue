@@ -1,20 +1,25 @@
 "use client";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
 import {
-  Search,
-  Bell,
-  Menu,
-  X,
   BookOpen,
   FileText,
   MessageCircle,
   Sparkles,
+  Search,
+  Bell,
+  Menu,
+  X,
   ShieldCheck,
   LogOut,
+  Plus,
+  LayoutDashboard,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
+import { signOut } from "@/lib/supabase/client";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { StudyTimer } from "@/components/shared/StudyTimer";
 
 const NAV_LINKS = [
   { label: "Tài liệu", href: "/tai-lieu", icon: BookOpen },
@@ -22,8 +27,6 @@ const NAV_LINKS = [
   { label: "Cộng đồng", href: "/community", icon: MessageCircle },
   { label: "AI Học tập", href: "#", icon: Sparkles, badge: "Sắp ra mắt" },
 ];
-
-import { signOut } from "@/lib/supabase/client";
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -42,11 +45,11 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-slate-200 h-[68px]">
-      <div className="max-w-[1280px] mx-auto px-4 h-full flex items-center justify-between gap-4">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-3 shrink-0 group">
-          <div className="w-10 h-10 relative rounded-[10px] overflow-hidden shadow-xs border border-blue-100 bg-white group-hover:scale-105 transition-transform">
+    <header className="sticky top-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 h-[68px] transition-colors">
+      <div className="max-w-[1360px] mx-auto px-4 h-full flex items-center justify-between gap-3">
+        {/* Left: Brand Logo */}
+        <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+          <div className="w-9 h-9 relative rounded-[10px] overflow-hidden shadow-xs border border-blue-100 dark:border-slate-700 bg-white dark:bg-slate-800 group-hover:scale-105 transition-transform">
             <Image
               src="/logo.png"
               alt="TailieuHue Logo"
@@ -57,134 +60,149 @@ export function Header() {
           </div>
           <div className="flex flex-col">
             <div className="flex items-center">
-              <span className="font-extrabold text-blue-600 text-lg leading-tight tracking-tight">
+              <span className="font-extrabold text-blue-600 dark:text-blue-400 text-lg leading-tight tracking-tight">
                 Tailieu<span className="text-amber-500">Hue</span>
               </span>
             </div>
-            <span className="text-[10px] text-slate-500 font-semibold tracking-wide">
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold tracking-wide">
               ĐH Kinh tế Huế
             </span>
           </div>
         </Link>
 
-        {/* Desktop Nav - Hoàn toàn sạch cho người dùng thông thường */}
-        <nav className="hidden md:flex items-center gap-1">
+        {/* Center: Desktop Nav */}
+        <nav className="hidden lg:flex items-center gap-0.5">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.label}
               href={link.href}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] text-sm font-medium text-slate-600 hover:text-slate-950 hover:bg-slate-50 transition-colors relative"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-[10px] text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-800 transition-colors relative"
             >
               {link.label}
               {link.badge && (
-                <span className="text-[10px] font-semibold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">
+                <span className="text-[10px] font-semibold bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full">
                   {link.badge}
                 </span>
               )}
             </Link>
           ))}
-
-          {/* CHỈ hiển thị khi đã đăng nhập đúng tài khoản Admin */}
-          {mounted && isAdmin && (
-            <Link
-              href="/admin"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-xs font-bold bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition-colors ml-2"
-            >
-              <ShieldCheck className="w-4 h-4 text-amber-600" />
-              Quản trị Admin
-            </Link>
-          )}
         </nav>
 
-        {/* Right actions */}
-        <div className="flex items-center gap-2.5">
-          {/* Quick upload document button - CHỈ HIỂN THỊ KHI LÀ ADMIN */}
-          {mounted && isAdmin && (
-            <Link
-              href="/tai-lieu/dang-tai"
-              className="hidden lg:flex items-center gap-1.5 px-3 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100/80 border border-blue-200/80 rounded-[10px] text-xs font-bold transition-colors shadow-2xs"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-blue-600" />
-              <span>Đăng tài liệu (Admin)</span>
-            </Link>
-          )}
+        {/* Right Actions */}
+        <div className="flex items-center gap-2">
+          {/* Thời gian hoạt động & Chuỗi ngày học tập */}
+          <StudyTimer />
 
-          {/* Search button */}
+          {/* Nút chuyển đổi Sáng / Tối / Theo hệ thống */}
+          <ThemeToggle />
+
+          {/* Search trigger button */}
           <button
             onClick={() => setSearchOpen(true)}
-            className="hidden sm:flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-[10px] text-sm text-slate-500 hover:border-blue-300 hover:bg-blue-50 transition-colors min-w-[160px]"
+            className="hidden xl:flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-[10px] text-sm text-slate-500 dark:text-slate-400 hover:border-blue-300 hover:bg-blue-50/50 dark:hover:bg-slate-800 transition-colors min-w-[150px]"
           >
-            <Search className="w-4 h-4 shrink-0 text-slate-400" />
+            <Search className="w-3.5 h-3.5 shrink-0 text-slate-400" />
             <span className="text-xs">Tìm kiếm tài liệu...</span>
           </button>
 
+          {/* Notification bell */}
           <button
             title="Thông báo"
-            className="w-9 h-9 flex items-center justify-center rounded-[10px] text-slate-500 hover:text-slate-950 hover:bg-slate-50 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-[8px] text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             <Bell className="w-4 h-4" />
           </button>
 
-          {/* User Profile / Login button */}
+          {/* User Profile / Admin Controls */}
           {mounted && currentUser ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 pl-1.5 py-1 pr-1.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700 rounded-[12px] shadow-2xs">
+              {/* User Link */}
               <Link
                 href="/dashboard"
-                className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 hover:border-blue-300 rounded-[10px] transition-colors"
+                className="flex items-center gap-2 hover:opacity-85 transition-opacity"
               >
-                <div className="w-7 h-7 bg-blue-600 text-white font-bold rounded-full flex items-center justify-center text-xs">
+                <div className="w-7 h-7 bg-blue-600 text-white font-bold rounded-[8px] flex items-center justify-center text-xs shadow-xs">
                   {currentUser.name.slice(0, 2).toUpperCase()}
                 </div>
-                <div className="hidden lg:flex flex-col text-left">
-                  <span className="text-xs font-bold text-slate-900 leading-tight">
-                    {currentUser.name}
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-medium">
+                <div className="hidden sm:flex flex-col text-left pr-1">
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white leading-tight truncate max-w-[90px]">
+                      {currentUser.name}
+                    </span>
+                    {isAdmin && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.2 bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-300 rounded border border-amber-300/60 dark:border-amber-800">
+                        Admin
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                     {isAdmin ? "Quản trị viên" : "Sinh viên HCE"}
                   </span>
                 </div>
               </Link>
+
+              {/* Phím tắt nhanh cho Admin: Vào quản trị & Đăng bài */}
+              {isAdmin && (
+                <div className="flex items-center gap-1 pl-1 border-l border-slate-200 dark:border-slate-700">
+                  <Link
+                    href="/admin"
+                    title="Vào Bảng điều khiển Quản trị viên"
+                    className="p-1 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/60 rounded-[6px] transition-colors"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                  </Link>
+                  <Link
+                    href="/tai-lieu/dang-tai"
+                    title="Đăng tải tài liệu mới (Admin)"
+                    className="p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/60 rounded-[6px] transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Link>
+                </div>
+              )}
+
+              {/* Nút Đăng xuất */}
               <button
                 onClick={handleLogout}
-                title="Đăng xuất"
-                className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-[8px] transition-colors cursor-pointer"
+                title="Đăng xuất tài khoản"
+                className="p-1 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-[6px] transition-colors cursor-pointer ml-0.5"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-3.5 h-3.5" />
               </button>
             </div>
           ) : (
             <Link
               href="/login"
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-[10px] transition-colors shadow-xs"
+              className="flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-[10px] transition-colors shadow-xs"
             >
               Đăng nhập
             </Link>
           )}
 
-          {/* Mobile menu button */}
+          {/* Mobile Menu Button */}
           <button
-            className="md:hidden w-9 h-9 flex items-center justify-center rounded-[10px] text-slate-500 hover:bg-slate-50"
+            className="lg:hidden w-8 h-8 flex items-center justify-center rounded-[8px] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
             onClick={() => setMobileOpen(!mobileOpen)}
           >
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5 text-slate-700" />}
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile Menu Dropdown */}
       {mobileOpen && (
-        <div className="md:hidden absolute top-[68px] left-0 right-0 bg-white border-b border-slate-200 px-4 py-3 space-y-1 shadow-lg animate-fade-in">
+        <div className="lg:hidden absolute top-[68px] left-0 right-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-3 space-y-1 shadow-xl animate-fade-in">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.label}
               href={link.href}
               onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
             >
-              <link.icon className="w-4 h-4 text-blue-600" />
+              <link.icon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               {link.label}
               {link.badge && (
-                <span className="text-[10px] font-semibold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full ml-auto">
+                <span className="text-[10px] font-semibold bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full ml-auto">
                   {link.badge}
                 </span>
               )}
@@ -192,22 +210,32 @@ export function Header() {
           ))}
 
           {mounted && isAdmin && (
-            <Link
-              href="/admin"
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-sm font-bold text-amber-900 bg-amber-50 border border-amber-200"
-            >
-              <ShieldCheck className="w-4 h-4 text-amber-600" />
-              Cổng quản trị Admin
-            </Link>
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1">
+              <Link
+                href="/admin"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-sm font-bold text-amber-900 dark:text-amber-200 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800"
+              >
+                <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                Cổng quản trị Admin
+              </Link>
+              <Link
+                href="/tai-lieu/dang-tai"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-sm font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800"
+              >
+                <Plus className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                Đăng tải tài liệu mới (Admin)
+              </Link>
+            </div>
           )}
 
-          <div className="pt-2 border-t border-slate-100">
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
             {mounted && currentUser ? (
               <div className="space-y-2">
                 <Link
                   href="/dashboard"
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-slate-100 text-slate-800 text-sm font-semibold rounded-[10px]"
+                  className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-[10px]"
                   onClick={() => setMobileOpen(false)}
                 >
                   Trang cá nhân ({currentUser.name})
@@ -217,9 +245,9 @@ export function Header() {
                     handleLogout();
                     setMobileOpen(false);
                   }}
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2 text-red-600 text-xs font-semibold cursor-pointer"
+                  className="flex items-center justify-center gap-2 w-full px-4 py-2 text-red-600 dark:text-red-400 text-xs font-semibold cursor-pointer"
                 >
-                  Đăng xuất
+                  Đăng xuất tài khoản
                 </button>
               </div>
             ) : (
@@ -231,40 +259,6 @@ export function Header() {
                 Đăng nhập
               </Link>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Search overlay */}
-      {searchOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center pt-20 px-4"
-          onClick={() => setSearchOpen(false)}
-        >
-          <div
-            className="bg-white rounded-[20px] shadow-xl w-full max-w-2xl p-4 animate-fade-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-3 border border-slate-200 rounded-[10px] px-4 py-3 focus-within:border-blue-400">
-              <Search className="w-4 h-4 text-slate-400 shrink-0" />
-              <input
-                autoFocus
-                type="text"
-                placeholder="Tìm kiếm đề cương, môn học của ĐH Kinh tế Huế..."
-                className="flex-1 outline-none text-sm text-slate-900 bg-transparent placeholder:text-slate-400"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    const target = e.target as HTMLInputElement;
-                    if (target.value.trim()) {
-                      window.location.href = `/tim-kiem?q=${encodeURIComponent(target.value.trim())}`;
-                    }
-                  }
-                }}
-              />
-            </div>
-            <div className="mt-3 text-xs text-slate-400 text-center">
-              Nhấn Enter để tìm kiếm, hoặc nhấn ra ngoài để đóng
-            </div>
           </div>
         </div>
       )}
