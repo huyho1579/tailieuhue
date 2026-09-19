@@ -1,11 +1,28 @@
 "use client";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { SlidersHorizontal, ArrowUpDown, Plus, X, Search, FileX } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import {
+  SlidersHorizontal,
+  ArrowUpDown,
+  Plus,
+  X,
+  Search,
+  FileX,
+  GraduationCap,
+  ChevronRight,
+} from "lucide-react";
 import { DocumentCard } from "@/components/documents/DocumentCard";
-import { DocumentFilter, FilterState, TYPES, DEPARTMENTS, PRICE_OPTIONS } from "@/components/documents/DocumentFilter";
+import {
+  DocumentFilter,
+  FilterState,
+  TYPES,
+  DEPARTMENTS,
+  PRICE_OPTIONS,
+} from "@/components/documents/DocumentFilter";
 import { useDocumentStore } from "@/lib/store/documentStore";
 import { useAuthStore } from "@/lib/store/auth";
+import { cn } from "@/lib/utils/cn";
 
 const SORT_OPTIONS = [
   { value: "newest", label: "Mới nhất" },
@@ -14,13 +31,17 @@ const SORT_OPTIONS = [
   { value: "pages", label: "Số trang nhiều nhất" },
 ];
 
-export default function TaiLieuPage() {
+function TaiLieuContent() {
   const { documents } = useDocumentStore();
   const { isAdmin } = useAuthStore();
-  const [mounted, setMounted] = useState(false);
+  const searchParams = useSearchParams();
+  const querySubject = searchParams.get("subject");
 
+  const [mounted, setMounted] = useState(false);
   const [sort, setSort] = useState("newest");
   const [showMobileFilter, setShowMobileFilter] = useState(false);
+  const [selectedSubject, setSelectedSubject] = useState<string>("all");
+
   const [filters, setFilters] = useState<FilterState>({
     types: [],
     departments: [],
@@ -29,18 +50,37 @@ export default function TaiLieuPage() {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (querySubject) {
+      setSelectedSubject(querySubject);
+    }
+  }, [querySubject]);
 
-  // XỬ LÝ LỌC THỜI GIAN THỰC
+  // 1. Tự động trích xuất danh sách tất cả các môn học có trong kho tài liệu
+  const availableSubjects = useMemo(() => {
+    const set = new Set<string>();
+    documents.forEach((d) => {
+      if (d.subject) set.add(d.subject.trim());
+    });
+    return Array.from(set);
+  }, [documents]);
+
+  // 2. XỬ LÝ LỌC THỜI GIAN THỰC (ĐỒNG BỘ CẢ MÔN HỌC & TÀI LIỆU)
   const filteredAndSortedDocs = useMemo(() => {
     let result = [...documents];
 
-    // 1. Lọc theo Loại tài liệu (Đề cương, Đề thi, Slide, Giáo trình)
+    // Lọc theo Môn học được chọn
+    if (selectedSubject !== "all") {
+      result = result.filter(
+        (d) => d.subject.toLowerCase().trim() === selectedSubject.toLowerCase().trim()
+      );
+    }
+
+    // Lọc theo Loại tài liệu (Đề cương, Đề thi, Slide, Giáo trình)
     if (filters.types.length > 0) {
       result = result.filter((d) => filters.types.includes(d.type));
     }
 
-    // 2. Lọc theo Khoa / Chuyên ngành
+    // Lọc theo Khoa / Chuyên ngành
     if (filters.departments.length > 0) {
       result = result.filter((d) => {
         if (!d.department) return false;
@@ -52,16 +92,17 @@ export default function TaiLieuPage() {
       });
     }
 
-    // 3. Lọc theo Mức phí (Miễn phí / PRO)
+    // Lọc theo Mức phí (Miễn phí / PRO)
     if (filters.priceFilter === "free") {
       result = result.filter((d) => !d.isPro || d.price === 0);
     } else if (filters.priceFilter === "pro") {
       result = result.filter((d) => d.isPro && d.price > 0);
     }
 
-    // 4. Sắp xếp
+    // Sắp xếp
     result.sort((a, b) => {
-      if (sort === "newest") return new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime();
+      if (sort === "newest")
+        return new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime();
       if (sort === "price-asc") return a.price - b.price;
       if (sort === "price-desc") return b.price - a.price;
       if (sort === "pages") return b.pages - a.pages;
@@ -69,37 +110,112 @@ export default function TaiLieuPage() {
     });
 
     return result;
-  }, [documents, filters, sort]);
+  }, [documents, selectedSubject, filters, sort]);
 
   const hasActiveFilters =
+    selectedSubject !== "all" ||
     filters.types.length > 0 ||
     filters.departments.length > 0 ||
     filters.priceFilter !== "all";
 
   const clearAllFilters = () => {
+    setSelectedSubject("all");
     setFilters({ types: [], departments: [], priceFilter: "all" });
   };
 
   return (
     <div className="max-w-[1280px] mx-auto px-4 py-8 animate-fade-in">
       {/* Breadcrumb & Admin Action */}
-      <nav className="text-sm text-slate-500 mb-6 flex items-center justify-between flex-wrap gap-3">
+      <nav className="text-xs text-slate-500 mb-6 flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2">
-          <Link href="/" className="hover:text-slate-700">Trang chủ</Link>
+          <Link href="/" className="hover:text-slate-700">
+            Trang chủ
+          </Link>
           <span className="text-slate-300">/</span>
           <span className="text-slate-900 font-semibold">Kho tài liệu ĐH Kinh tế Huế</span>
         </div>
 
-        {/* CHỈ HIỂN THỊ KHI LÀ ADMIN */}
-        {mounted && isAdmin && (
+        <div className="flex items-center gap-2">
           <Link
-            href="/tai-lieu/dang-tai"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-[8px] transition-colors shadow-xs"
+            href="/mon-hoc"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-[8px] transition-colors"
           >
-            <Plus className="w-3.5 h-3.5" /> Đăng tài liệu mới (Admin)
+            <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
+            Chuyên trang Môn học
           </Link>
-        )}
+
+          {mounted && isAdmin && (
+            <Link
+              href="/tai-lieu/dang-tai"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-[8px] transition-colors shadow-xs"
+            >
+              <Plus className="w-3.5 h-3.5" /> Đăng tài liệu mới (Admin)
+            </Link>
+          )}
+        </div>
       </nav>
+
+      {/* Quick Subject Filter Pill Bar - Đồng bộ tức thời với Môn học */}
+      <div className="mb-6 p-3 bg-white border border-slate-200 rounded-[16px] shadow-xs">
+        <div className="flex items-center justify-between mb-2 px-1">
+          <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+            <GraduationCap className="w-4 h-4 text-blue-600" />
+            Lọc nhanh theo Môn học ({availableSubjects.length} môn):
+          </span>
+          <Link
+            href="/mon-hoc"
+            className="text-[11px] font-bold text-blue-600 hover:underline flex items-center gap-0.5"
+          >
+            Xem tất cả môn học <ChevronRight className="w-3 h-3" />
+          </Link>
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <button
+            type="button"
+            onClick={() => setSelectedSubject("all")}
+            className={cn(
+              "px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer",
+              selectedSubject === "all"
+                ? "bg-blue-600 text-white shadow-2xs"
+                : "bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200"
+            )}
+          >
+            Tất cả môn ({documents.length})
+          </button>
+
+          {availableSubjects.map((sub) => {
+            const count = documents.filter(
+              (d) => d.subject.toLowerCase().trim() === sub.toLowerCase().trim()
+            ).length;
+            const isSelected = selectedSubject.toLowerCase().trim() === sub.toLowerCase().trim();
+
+            return (
+              <button
+                key={sub}
+                type="button"
+                onClick={() => setSelectedSubject(sub)}
+                className={cn(
+                  "px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5",
+                  isSelected
+                    ? "bg-blue-600 text-white shadow-2xs"
+                    : "bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200"
+                )}
+              >
+                <span>{sub}</span>
+                <span
+                  className={cn(
+                    "text-[10px] px-1.5 py-0.2 rounded-full font-bold",
+                    isSelected ? "bg-white/20 text-white" : "bg-blue-100 text-blue-700"
+                  )}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       <div className="flex items-start gap-8">
         {/* Sidebar filter - Desktop */}
@@ -114,11 +230,13 @@ export default function TaiLieuPage() {
           {/* Header */}
           <div className="flex items-center justify-between mb-5 flex-wrap gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-slate-950">Kho tài liệu học tập</h1>
+              <h1 className="text-2xl font-bold text-slate-950">
+                {selectedSubject === "all" ? "Kho tài liệu học tập" : `Tài liệu môn: ${selectedSubject}`}
+              </h1>
               <p className="text-sm text-slate-500 mt-0.5">
                 Tìm thấy{" "}
-                <span className="font-bold text-slate-900">{filteredAndSortedDocs.length}</span>{" "}
-                tài liệu phù hợp tiêu chuẩn ĐH Kinh tế Huế
+                <span className="font-bold text-slate-900">{filteredAndSortedDocs.length}</span> tài
+                liệu phù hợp tiêu chuẩn ĐH Kinh tế Huế
               </p>
             </div>
 
@@ -126,7 +244,7 @@ export default function TaiLieuPage() {
               {/* Mobile filter toggle */}
               <button
                 onClick={() => setShowMobileFilter(true)}
-                className="lg:hidden flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-[10px] text-sm font-medium text-slate-700 hover:border-blue-300 shadow-xs"
+                className="lg:hidden flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-[10px] text-sm font-medium text-slate-700 hover:border-blue-300 shadow-xs cursor-pointer"
               >
                 <SlidersHorizontal className="w-4 h-4" />
                 Bộ lọc {hasActiveFilters && <span className="w-2 h-2 rounded-full bg-blue-600" />}
@@ -155,6 +273,19 @@ export default function TaiLieuPage() {
             <div className="flex items-center gap-2 flex-wrap mb-5 p-3 bg-blue-50/50 border border-blue-100 rounded-[12px]">
               <span className="text-xs font-bold text-slate-600">Đang lọc:</span>
 
+              {selectedSubject !== "all" && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-600 text-white rounded-full text-xs font-semibold shadow-2xs">
+                  Môn: {selectedSubject}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSubject("all")}
+                    className="hover:text-red-200 cursor-pointer"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+
               {filters.types.map((t) => {
                 const label = TYPES.find((item) => item.id === t)?.label || t;
                 return (
@@ -166,9 +297,12 @@ export default function TaiLieuPage() {
                     <button
                       type="button"
                       onClick={() =>
-                        setFilters({ ...filters, types: filters.types.filter((item) => item !== t) })
+                        setFilters({
+                          ...filters,
+                          types: filters.types.filter((item) => item !== t),
+                        })
                       }
-                      className="hover:text-red-500"
+                      className="hover:text-red-500 cursor-pointer"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -190,7 +324,7 @@ export default function TaiLieuPage() {
                         departments: filters.departments.filter((item) => item !== dept),
                       })
                     }
-                    className="hover:text-red-500"
+                    className="hover:text-red-500 cursor-pointer"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -203,7 +337,7 @@ export default function TaiLieuPage() {
                   <button
                     type="button"
                     onClick={() => setFilters({ ...filters, priceFilter: "all" })}
-                    className="hover:text-red-500"
+                    className="hover:text-red-500 cursor-pointer"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -213,62 +347,94 @@ export default function TaiLieuPage() {
               <button
                 type="button"
                 onClick={clearAllFilters}
-                className="text-xs font-bold text-red-600 hover:text-red-700 hover:underline ml-auto"
+                className="text-xs font-bold text-red-600 hover:text-red-700 underline ml-auto cursor-pointer"
               >
-                Xóa tất cả lọc
+                Xóa tất cả bộ lọc
               </button>
             </div>
           )}
 
-          {/* Document Grid hoặc Empty state */}
+          {/* Documents Grid */}
           {filteredAndSortedDocs.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredAndSortedDocs.map((doc) => (
                 <DocumentCard key={doc.id} doc={doc} />
               ))}
             </div>
           ) : (
-            <div className="text-center py-20 bg-white border border-slate-200 rounded-[20px] p-8 shadow-xs">
-              <FileX className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <h3 className="text-base font-bold text-slate-800 mb-1">
-                Không tìm thấy tài liệu phù hợp với bộ lọc này
+            <div className="bg-white border border-slate-200 rounded-[20px] p-12 text-center max-w-md mx-auto my-8">
+              <div className="w-14 h-14 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                <FileX className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-slate-900 text-base mb-1">
+                Không tìm thấy tài liệu nào
               </h3>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto mb-5 leading-relaxed">
-                Bạn thử chọn lại loại tài liệu khác hoặc xóa bớt tiêu chí lọc khoa / mức phí để xem thêm kết quả nhé.
+              <p className="text-xs text-slate-500 mb-5 leading-relaxed">
+                Không có tài liệu nào phù hợp với bộ lọc hiện tại của bạn. Thử xóa bớt điều kiện lọc
+                hoặc chọn môn học khác.
               </p>
               <button
                 type="button"
                 onClick={clearAllFilters}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-[10px] text-xs font-bold transition-colors shadow-xs"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-[8px] transition-colors cursor-pointer shadow-xs"
               >
-                Xóa bộ lọc để xem tất cả
+                Đặt lại tất cả bộ lọc
               </button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Mobile filter drawer */}
+      {/* Mobile filter slide-over */}
       {showMobileFilter && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-xs"
+            className="fixed inset-0 bg-black/40 backdrop-blur-2xs"
             onClick={() => setShowMobileFilter(false)}
           />
-          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[24px] p-6 max-h-[85vh] overflow-y-auto animate-fade-in shadow-2xl">
-            <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
-              <h3 className="font-bold text-slate-900 text-base">Bộ lọc tìm kiếm</h3>
+          <div className="fixed inset-y-0 right-0 max-w-xs w-full bg-white p-6 shadow-xl overflow-y-auto flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+                <h3 className="font-bold text-slate-900 text-base">Bộ lọc tài liệu</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowMobileFilter(false)}
+                  className="p-1 text-slate-400 hover:text-slate-700"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <DocumentFilter filters={filters} onFilterChange={setFilters} />
+            </div>
+
+            <div className="pt-4 border-t border-slate-100 flex gap-2">
               <button
-                onClick={() => setShowMobileFilter(false)}
-                className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-[8px]"
+                type="button"
+                onClick={clearAllFilters}
+                className="flex-1 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-[10px]"
               >
-                Áp dụng bộ lọc
+                Đặt lại
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowMobileFilter(false)}
+                className="flex-1 py-2.5 bg-blue-600 text-white text-xs font-bold rounded-[10px]"
+              >
+                Áp dụng
               </button>
             </div>
-            <DocumentFilter filters={filters} onFilterChange={setFilters} />
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+export default function TaiLieuPage() {
+  return (
+    <Suspense fallback={<div className="max-w-[1280px] mx-auto p-8 animate-pulse">Đang tải...</div>}>
+      <TaiLieuContent />
+    </Suspense>
   );
 }

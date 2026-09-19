@@ -1,6 +1,6 @@
 "use client";
-import { useState, useMemo, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo, useRef, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   FileText,
@@ -68,16 +68,41 @@ const SAMPLE_COVERS = [
   },
 ];
 
-export default function DangTaiLieuPage() {
+function DangTaiLieuForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { addDocument, documents } = useDocumentStore();
   const { isAdmin } = useAuthStore();
   const [mounted, setMounted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Danh sách môn học đồng bộ động từ PRESET và các tài liệu đã có
+  const allSubjectOptions = useMemo(() => {
+    const list = [...PRESET_SUBJECTS];
+    documents.forEach((d) => {
+      if (d.subject && !list.includes(d.subject.trim())) {
+        list.push(d.subject.trim());
+      }
+    });
+    return list;
+  }, [documents]);
+
   useEffect(() => {
     setMounted(true);
-  }, []);
+    const sub = searchParams.get("subject");
+    if (sub) {
+      if (allSubjectOptions.includes(sub)) {
+        setSubject(sub);
+      } else {
+        setSubject("other");
+        setCustomSubject(sub);
+      }
+    }
+    const t = searchParams.get("type");
+    if (t && ["de-cuong", "de-thi", "slide", "giao-trinh"].includes(t)) {
+      setType(t as any);
+    }
+  }, [searchParams, allSubjectOptions]);
 
   // Form State
   const [title, setTitle] = useState("");
@@ -526,7 +551,7 @@ export default function DangTaiLieuPage() {
                   onChange={(e) => setSubject(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[10px] text-sm text-slate-800 font-medium focus:outline-none focus:border-blue-400"
                 >
-                  {PRESET_SUBJECTS.map((s) => (
+                  {allSubjectOptions.map((s) => (
                     <option key={s} value={s}>
                       {s}
                     </option>
@@ -851,5 +876,13 @@ export default function DangTaiLieuPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function DangTaiLieuPage() {
+  return (
+    <Suspense fallback={<div className="max-w-[1000px] mx-auto p-12 text-center text-sm text-slate-500">Đang tải biểu mẫu...</div>}>
+      <DangTaiLieuForm />
+    </Suspense>
   );
 }

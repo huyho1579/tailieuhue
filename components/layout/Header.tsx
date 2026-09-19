@@ -15,6 +15,7 @@ import {
   LogOut,
   Plus,
   LayoutDashboard,
+  GraduationCap,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { signOut } from "@/lib/supabase/client";
@@ -23,7 +24,7 @@ import { StudyTimer } from "@/components/shared/StudyTimer";
 
 const NAV_LINKS = [
   { label: "Tài liệu", href: "/tai-lieu", icon: BookOpen },
-  { label: "Môn học", href: "/tai-lieu/de-cuong", icon: FileText },
+  { label: "Môn học", href: "/mon-hoc", icon: GraduationCap },
   { label: "Cộng đồng", href: "/community", icon: MessageCircle },
   { label: "AI Học tập", href: "#", icon: Sparkles, badge: "Sắp ra mắt" },
 ];
