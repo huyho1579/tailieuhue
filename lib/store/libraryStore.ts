@@ -2,6 +2,8 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { DetailedDocument } from "./documentStore";
+import { db } from "@/lib/supabase/db";
+import { useAuthStore } from "./auth";
 
 export interface PurchasedDoc {
   id: string;
@@ -43,7 +45,7 @@ export const useLibraryStore = create<LibraryStoreState>()(
           title: doc.title,
           slug: doc.slug,
           subject: doc.subject,
-          driveUrl: doc.driveUrl || "https://drive.google.com/drive/folders/edudocs-hce-tailieu",
+          driveUrl: doc.driveUrl || "https://drive.google.com/drive/folders/tailieuhue",
           price: doc.price,
           pages: doc.pages,
           coverImage: doc.coverImage || doc.thumbnail,
@@ -53,6 +55,16 @@ export const useLibraryStore = create<LibraryStoreState>()(
         set({
           purchasedDocs: [newPurchased, ...purchasedDocs],
         });
+
+        // Ghi nhận lên Supabase nếu đã đăng nhập
+        try {
+          const user = useAuthStore.getState().currentUser;
+          if (user?.email) {
+            db.recordPurchase(user.email, doc.id).catch((err) => {
+              console.warn("Lỗi lưu purchase lên Supabase:", err);
+            });
+          }
+        } catch {}
       },
 
       isPurchased: (docId: string) => {

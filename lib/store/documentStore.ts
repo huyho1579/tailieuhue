@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { Document, mockDocuments } from "@/lib/data/mock";
+import { db } from "@/lib/supabase/db";
 
 // Mở rộng Document type với các trường chi tiết
 export interface DetailedDocument extends Document {
@@ -19,6 +20,7 @@ interface DocumentStoreState {
   addDocument: (doc: Omit<DetailedDocument, "id" | "slug" | "uploadedAt" | "rating" | "reviewCount" | "viewCount" | "downloadCount">) => DetailedDocument;
   deleteDocument: (id: string) => void;
   getDocumentBySlug: (slug: string) => DetailedDocument | undefined;
+  syncFromSupabase: () => Promise<void>;
 }
 
 // Map chính xác từng khoa cho các tài liệu ban đầu của ĐH Kinh tế Huế
@@ -37,7 +39,7 @@ const INITIAL_DOCS: DetailedDocument[] = mockDocuments.map((doc, i) => ({
   semester: "Học kỳ 1 • Năm học 2024–2025",
   lecturer: "Bộ môn chuyên ngành HCE",
   fileFormat: "Google Drive",
-  driveUrl: `https://drive.google.com/drive/folders/edudocs-hce-${doc.slug || i}`,
+  driveUrl: `https://drive.google.com/drive/folders/tailieuhue-${doc.slug || i}`,
   coverTheme: "blue",
   coverImage: "",
   highlights: [
@@ -51,6 +53,17 @@ export const useDocumentStore = create<DocumentStoreState>()(
   persist(
     (set, get) => ({
       documents: INITIAL_DOCS,
+
+      syncFromSupabase: async () => {
+        try {
+          const supabaseDocs = await db.getDocuments();
+          if (supabaseDocs && supabaseDocs.length > 0) {
+            set({ documents: supabaseDocs });
+          }
+        } catch (e) {
+          console.error("Lỗi đồng bộ tài liệu từ Supabase:", e);
+        }
+      },
 
       addDocument: (newDocData) => {
         const slug = newDocData.title
@@ -67,18 +80,23 @@ export const useDocumentStore = create<DocumentStoreState>()(
           id: `doc-${Date.now()}`,
           slug,
           uploadedAt: new Date(),
-          rating: 0,
+          rating: 5.0,
           reviewCount: 0,
-          viewCount: 0,
+          viewCount: 1,
           downloadCount: 0,
           university: "Đại học Kinh tế Huế",
           thumbnail: newDocData.coverImage || "",
-          driveUrl: newDocData.driveUrl || "https://drive.google.com/drive/folders/edudocs-hce",
+          driveUrl: newDocData.driveUrl || "https://drive.google.com/drive/folders/tailieuhue",
         };
 
         set((state) => ({
           documents: [newDoc, ...state.documents],
         }));
+
+        // Đồng bộ lên Supabase ngầm
+        db.insertDocument(newDoc).catch((err) => {
+          console.warn("Chưa đồng bộ được lên Supabase (bảng documents chưa được tạo):", err);
+        });
 
         return newDoc;
       },
@@ -87,6 +105,11 @@ export const useDocumentStore = create<DocumentStoreState>()(
         set((state) => ({
           documents: state.documents.filter((d) => d.id !== id),
         }));
+
+        // Xóa trên Supabase ngầm
+        db.deleteDocument(id).catch((err) => {
+          console.warn("Lỗi khi xóa trên Supabase:", err);
+        });
       },
 
       getDocumentBySlug: (slug: string) => {

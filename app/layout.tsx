@@ -3,6 +3,7 @@ import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MobileNav } from "@/components/layout/MobileNav";
+import { DataSyncProvider } from "@/components/providers/DataSyncProvider";
 
 export const metadata: Metadata = {
   title: "TailieuHue — Nền tảng tài liệu Đại học Kinh tế Huế",
@@ -23,15 +24,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="vi">
       <body>
-        <Header />
-        <main className="min-h-screen">
-          {children}
-        </main>
-        <Footer />
-        <MobileNav />
-        {/* Bottom padding for mobile nav */}
-        <div className="md:hidden h-16" />
+        <DataSyncProvider>
+          <Header />
+          <main className="min-h-screen">
+            {children}
+          </main>
+          <Footer />
+          <MobileNav />
+          {/* Bottom padding for mobile nav */}
+          <div className="md:hidden h-16" />
+        </DataSyncProvider>
       </body>
     </html>
   );
 }
+

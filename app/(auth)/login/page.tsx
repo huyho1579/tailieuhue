@@ -1,10 +1,12 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, BookOpen, ShieldAlert } from "lucide-react";
+import { Eye, EyeOff, ShieldAlert } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { GoogleAuthModal } from "@/components/shared/GoogleAuthModal";
+import { signInWithGoogle } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,6 +16,21 @@ export default function LoginPage() {
   const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
 
   const { loginRegularUser, loginAdmin } = useAuthStore();
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    try {
+      const res = await signInWithGoogle();
+      if (res?.error) {
+        console.warn("Lỗi chuyển hướng Google:", res.error);
+        setIsGoogleModalOpen(true);
+      }
+    } catch {
+      setIsGoogleModalOpen(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,11 +58,15 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center mb-8">
           <Link href="/" className="flex items-center gap-2.5 mb-6">
-            <div className="w-10 h-10 bg-blue-600 rounded-[12px] flex items-center justify-center shadow-xs">
-              <BookOpen className="w-5 h-5 text-white" />
-            </div>
+            <Image
+              src="/logo.png"
+              alt="TailieuHue Logo"
+              width={40}
+              height={40}
+              className="rounded-[10px] object-contain shadow-xs"
+            />
             <div className="flex flex-col">
-              <span className="font-bold text-slate-950 text-xl leading-tight">EduDocs</span>
+              <span className="font-bold text-slate-950 text-xl leading-tight">TailieuHue</span>
               <span className="text-[11px] text-blue-600 font-bold">Đại học Kinh tế Huế</span>
             </div>
           </Link>
@@ -56,11 +77,12 @@ export default function LoginPage() {
         </div>
 
         <div className="bg-white border border-slate-200 rounded-[20px] p-8 shadow-[0_4px_20px_rgba(15,23,42,0.06)]">
-          {/* Nút Đăng nhập Google kích hoạt Modal */}
+          {/* Nút Đăng nhập Google trực tiếp */}
           <button
             type="button"
-            onClick={() => setIsGoogleModalOpen(true)}
-            className="w-full flex items-center justify-center gap-3 py-3 border border-slate-200 rounded-[10px] text-sm font-semibold text-slate-700 hover:border-blue-400 hover:bg-blue-50/40 transition-all mb-5 cursor-pointer shadow-xs"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-3 py-3 border border-slate-200 rounded-[10px] text-sm font-semibold text-slate-700 hover:border-blue-400 hover:bg-blue-50/40 transition-all mb-5 cursor-pointer shadow-xs disabled:opacity-70"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path
@@ -80,7 +102,7 @@ export default function LoginPage() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Đăng nhập với Google
+            {loading ? "Đang kết nối Google..." : "Đăng nhập thẳng với Google"}
           </button>
 
           <div className="relative mb-5">
@@ -168,7 +190,7 @@ export default function LoginPage() {
         </p>
       </div>
 
-      {/* Google Sign In Modal */}
+      {/* Google Sign In Modal (Dự phòng khi chưa bật Google OAuth trên Supabase) */}
       <GoogleAuthModal
         isOpen={isGoogleModalOpen}
         onClose={() => setIsGoogleModalOpen(false)}

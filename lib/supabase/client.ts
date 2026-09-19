@@ -15,13 +15,15 @@ export function createClient() {
 export async function signInWithGoogle() {
   const supabase = createClient();
   if (!supabase) {
-    return { error: "SUPABASE_NOT_CONFIGURED" };
+    return { error: { message: "SUPABASE_NOT_CONFIGURED" } };
   }
+
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/api/auth/callback`,
+      redirectTo: `${origin}/api/auth/callback`,
       queryParams: {
         access_type: "offline",
         prompt: "consent",
@@ -29,5 +31,16 @@ export async function signInWithGoogle() {
     },
   });
 
+  if (!error && data?.url) {
+    window.location.href = data.url;
+  }
+
   return { data, error };
+}
+
+export async function signOut() {
+  const supabase = createClient();
+  if (supabase) {
+    await supabase.auth.signOut();
+  }
 }

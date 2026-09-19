@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { Post, mockPosts } from "@/lib/data/mock";
+import { db } from "@/lib/supabase/db";
 
 interface CommunityStoreState {
   posts: Post[];
@@ -11,8 +12,10 @@ interface CommunityStoreState {
     type: "discussion" | "qa" | "share" | "experience";
     author: { name: string; username: string; avatar: string };
     tags: string[];
+    authorEmail?: string;
   }) => Post;
   getPostBySlug: (slug: string) => Post | undefined;
+  syncFromSupabase: () => Promise<void>;
 }
 
 export const useCommunityStore = create<CommunityStoreState>()(
@@ -20,10 +23,25 @@ export const useCommunityStore = create<CommunityStoreState>()(
     (set, get) => ({
       posts: mockPosts,
 
+      syncFromSupabase: async () => {
+        try {
+          const supabasePosts = await db.getPosts();
+          if (supabasePosts && supabasePosts.length > 0) {
+            set({ posts: supabasePosts });
+          }
+        } catch (e) {
+          console.warn("Lỗi đồng bộ bài viết Supabase:", e);
+        }
+      },
+
       deletePost: (id: string) => {
         set((state) => ({
           posts: state.posts.filter((p) => p.id !== id),
         }));
+
+        db.deletePost(id).catch((err) => {
+          console.warn("Lỗi xóa bài viết trên Supabase:", err);
+        });
       },
 
       addPost: (postData) => {
@@ -54,6 +72,14 @@ export const useCommunityStore = create<CommunityStoreState>()(
         set((state) => ({
           posts: [newPost, ...state.posts],
         }));
+
+        // Ghi lên Supabase
+        db.insertPost({
+          ...newPost,
+          authorEmail: postData.authorEmail || `${postData.author.username}@tailieuhue.com`,
+        }).catch((err) => {
+          console.warn("Lỗi tạo bài viết trên Supabase:", err);
+        });
 
         return newPost;
       },
