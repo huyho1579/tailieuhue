@@ -60,17 +60,33 @@ export const useDocumentStore = create<DocumentStoreState>()(
         try {
           set({ isLoading: true });
           const supabaseDocs = await db.getDocuments();
-          
+
           if (supabaseDocs && supabaseDocs.length > 0) {
-            // Supabase là nguồn dữ liệu chính thức — ghi đè hoàn toàn
-            set({ documents: supabaseDocs, isLoading: false });
-          } else {
-            // Supabase trống: đẩy dữ liệu INITIAL lên Supabase để đồng bộ lần đầu
-            const localDocs = get().documents;
-            for (const doc of localDocs) {
-              await db.insertDocument(doc).catch(() => {});
+            // MERGE: Supabase docs + INITIAL_DOCS (Supabase wins on slug/id conflicts)
+            const supabaseIds = new Set(supabaseDocs.map((d) => d.id));
+            const supabaseSlugs = new Set(supabaseDocs.map((d) => d.slug));
+
+            // Lọc INITIAL_DOCS chưa có trên Supabase
+            const missingDocs = INITIAL_DOCS.filter(
+              (d) => !supabaseIds.has(d.id) && !supabaseSlugs.has(d.slug)
+            );
+
+            // Kết quả = Supabase docs + INITIAL_DOCS chưa upload
+            const merged = [...supabaseDocs, ...missingDocs];
+            set({ documents: merged, isLoading: false });
+
+            // Đẩy các INITIAL_DOCS thiếu lên Supabase (background, không block UI)
+            if (missingDocs.length > 0) {
+              for (const doc of missingDocs) {
+                db.insertDocument(doc).catch(() => {});
+              }
             }
-            set({ isLoading: false });
+          } else {
+            // Supabase trống: đẩy tất cả INITIAL_DOCS lên
+            set({ documents: INITIAL_DOCS, isLoading: false });
+            for (const doc of INITIAL_DOCS) {
+              db.insertDocument(doc).catch(() => {});
+            }
           }
         } catch (e) {
           console.error("Lỗi đồng bộ tài liệu từ Supabase:", e);
@@ -141,7 +157,7 @@ export const useDocumentStore = create<DocumentStoreState>()(
       },
     }),
     {
-      name: "edudocs-documents-storage",
+      name: "TailieuHue-documents-storage",
       storage: createJSONStorage(() => localStorage),
     }
   )

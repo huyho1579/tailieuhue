@@ -71,7 +71,7 @@ export function Footer() {
 
         <div className="mt-10 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-slate-400">
-            © 2024 EduDocs — Đại học Kinh tế Huế. Mọi quyền được bảo lưu.
+            © 2024 TailieuHue — Đại học Kinh tế Huế. Mọi quyền được bảo lưu.
           </p>
           <div className="flex items-center gap-4">
             <Link href="/privacy" className="text-xs text-slate-400 hover:text-slate-600">

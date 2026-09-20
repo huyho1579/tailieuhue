@@ -18,7 +18,7 @@ export function ProBanner() {
                   <Crown className="w-4 h-4 text-amber-300" />
                 </div>
                 <span className="text-blue-100 text-sm font-bold tracking-wide uppercase">
-                  EduDocs PRO — Đại học Kinh tế Huế
+                  TailieuHue PRO — Đại học Kinh tế Huế
                 </span>
               </div>
               <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-3 leading-tight tracking-tight">

@@ -248,7 +248,7 @@ export const useCommunityStore = create<CommunityStoreState>()(
       },
     }),
     {
-      name: "edudocs-community-storage",
+      name: "TailieuHue-community-storage",
       storage: createJSONStorage(() => localStorage),
     }
   )

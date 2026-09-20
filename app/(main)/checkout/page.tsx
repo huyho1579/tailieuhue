@@ -35,7 +35,7 @@ function CheckoutContent() {
     return documents.find((d) => d.isPro) || documents[0];
   }, [docId, documents]);
 
-  const targetDriveUrl = doc?.driveUrl || "https://drive.google.com/drive/folders/edudocs-hce";
+  const targetDriveUrl = doc?.driveUrl || "https://drive.google.com/drive/folders/TailieuHue-hce";
 
   const handlePay = () => {
     setLoading(true);

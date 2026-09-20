@@ -22,7 +22,6 @@ const MENU_ITEMS = [
   { label: "Thư viện tài liệu", href: "/dashboard/thu-vien", icon: Library },
   { label: "Tài liệu đã mua", href: "/dashboard/da-mua", icon: ShoppingBag },
   { label: "Đã lưu yêu thích", href: "/dashboard/da-luu", icon: Bookmark },
-  { label: "Bài viết của tôi", href: "/dashboard/bai-viet", icon: FileText },
   { label: "Cài đặt tài khoản", href: "/dashboard/cai-dat", icon: Settings },
 ];
 

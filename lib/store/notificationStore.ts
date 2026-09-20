@@ -59,7 +59,7 @@ export const useNotificationStore = create<NotificationState>()(
       },
     }),
     {
-      name: "edudocs-notifications",
+      name: "TailieuHue-notifications",
       storage: createJSONStorage(() => localStorage),
     }
   )

@@ -19,9 +19,9 @@ export default function SettingsPage() {
     setMounted(true);
     if (currentUser) {
       const savedBio =
-        localStorage.getItem(`edudocs-bio-${currentUser.email}`) ||
+        localStorage.getItem(`TailieuHue-bio-${currentUser.email}`) ||
         (currentUser.role === "admin"
-          ? "Quản trị viên hệ thống EduDocs — Sinh viên Đại học Kinh tế, Đại học Huế."
+          ? "Quản trị viên hệ thống TailieuHue — Sinh viên Đại học Kinh tế, Đại học Huế."
           : "Sinh viên Đại học Kinh tế, Đại học Huế.");
 
       setForm({
@@ -46,7 +46,7 @@ export default function SettingsPage() {
     });
 
     if (form.bio) {
-      localStorage.setItem(`edudocs-bio-${form.email.trim()}`, form.bio);
+      localStorage.setItem(`TailieuHue-bio-${form.email.trim()}`, form.bio);
     }
 
     setSaved(true);
@@ -64,7 +64,7 @@ export default function SettingsPage() {
         <p className="text-slate-500 text-sm mt-0.5">
           {isAdmin
             ? "Quản lý thông tin cá nhân và tài khoản quản trị viên của bạn"
-            : "Quản lý thông tin hồ sơ sinh viên của bạn tại EduDocs Huế"}
+            : "Quản lý thông tin hồ sơ sinh viên của bạn tại TailieuHue Huế"}
         </p>
       </div>
 

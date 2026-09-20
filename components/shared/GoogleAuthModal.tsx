@@ -118,7 +118,7 @@ export function GoogleAuthModal({
                 {mode === "login" ? "Đăng nhập với Google" : "Đăng ký với Google"}
               </h3>
               <p className="text-xs text-slate-500">
-                Truy cập hệ thống tài liệu <strong className="text-blue-600">EduDocs Huế</strong>
+                Truy cập hệ thống tài liệu <strong className="text-blue-600">TailieuHue Huế</strong>
               </p>
             </div>
           </div>

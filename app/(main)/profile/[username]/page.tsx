@@ -140,7 +140,7 @@ export default function ProfilePage({
 
           <div className="flex items-center justify-center gap-1.5 mt-4 text-xs text-slate-400">
             <Calendar className="w-3.5 h-3.5" />
-            <span>Thành viên hoạt động tại EduDocs Huế</span>
+            <span>Thành viên hoạt động tại TailieuHue Huế</span>
           </div>
         </div>
       </div>
@@ -198,7 +198,7 @@ export default function ProfilePage({
         <div className="space-y-3">
           {[
             {
-              text: `Đã kết nối tài khoản sinh viên với hệ thống EduDocs Huế`,
+              text: `Đã kết nối tài khoản sinh viên với hệ thống TailieuHue Huế`,
               time: "Gần đây",
             },
             {

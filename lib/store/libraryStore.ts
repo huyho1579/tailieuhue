@@ -88,7 +88,7 @@ export const useLibraryStore = create<LibraryStoreState>()(
       },
     }),
     {
-      name: "edudocs-library-storage",
+      name: "TailieuHue-library-storage",
       storage: createJSONStorage(() => localStorage),
     }
   )

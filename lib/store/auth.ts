@@ -310,7 +310,7 @@ export const useAuthStore = create<AuthState>()(
         if (mode === "login" && !found) {
           return {
             success: false,
-            error: `Tài khoản Google (${cleanEmail}) chưa được đăng ký trên EduDocs! Vui lòng chọn "Đăng ký với Google".`,
+            error: `Tài khoản Google (${cleanEmail}) chưa được đăng ký trên TailieuHue! Vui lòng chọn "Đăng ký với Google".`,
           };
         }
 
@@ -402,7 +402,7 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: "edudocs-auth-storage",
+      name: "TailieuHue-auth-storage",
       storage: createJSONStorage(() => localStorage),
     }
   )
