@@ -14,12 +14,12 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { useDocumentStore } from "@/lib/store/documentStore";
-import { useCommunityStore } from "@/lib/store/communityStore";
+import { useAuthStore } from "@/lib/store/auth";
 import { formatPrice } from "@/lib/utils/format";
 
 export default function AdminDashboardPage() {
   const { documents, deleteDocument } = useDocumentStore();
-  const { posts } = useCommunityStore();
+  const { registeredUsers } = useAuthStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -83,12 +83,14 @@ export default function AdminDashboardPage() {
         <div className="bg-white border border-slate-200 rounded-[16px] p-5 shadow-xs">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Bài viết cộng đồng HCE
+              Người dùng hệ thống
             </span>
-            <Building2 className="w-4 h-4 text-emerald-600" />
+            <Users className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="text-3xl font-bold text-slate-950">{posts.length}</div>
-          <span className="text-xs text-slate-400 mt-1 block">Bài thảo luận sinh viên</span>
+          <div className="text-3xl font-bold text-slate-950">
+            {registeredUsers?.length || 1}
+          </div>
+          <span className="text-xs text-slate-400 mt-1 block">Tài khoản sinh viên HCE</span>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-[16px] p-5 shadow-xs">

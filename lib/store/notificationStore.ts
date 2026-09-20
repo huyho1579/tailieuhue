@@ -8,6 +8,7 @@ export interface Notification {
   type: "purchase" | "info" | "system";
   read: boolean;
   createdAt: string;
+  link?: string;
 }
 
 interface NotificationState {
@@ -19,10 +20,31 @@ interface NotificationState {
   unreadCount: () => number;
 }
 
+const DEFAULT_NOTIFICATIONS: Notification[] = [
+  {
+    id: "notif-welcome",
+    title: "Chào mừng bạn đến với TailieuHue!",
+    message: "Kho đề cương, đề thi và bài giảng chuyên sâu dành riêng cho sinh viên Đại học Kinh tế — Đại học Huế.",
+    type: "system",
+    read: false,
+    createdAt: new Date(Date.now() - 3600 * 1000).toISOString(),
+    link: "/tai-lieu",
+  },
+  {
+    id: "notif-exam-update",
+    title: "Cập nhật đề thi mới — ĐH Kinh tế Huế",
+    message: "Đề thi và đáp án các môn Kinh tế Vi mô, Kế toán Tài chính, Marketing Căn bản đã được đồng bộ đầy đủ.",
+    type: "info",
+    read: false,
+    createdAt: new Date(Date.now() - 7200 * 1000).toISOString(),
+    link: "/tai-lieu/de-thi",
+  },
+];
+
 export const useNotificationStore = create<NotificationState>()(
   persist(
     (set, get) => ({
-      notifications: [],
+      notifications: DEFAULT_NOTIFICATIONS,
 
       addNotification: (n) => {
         const newNotif: Notification = {
@@ -59,7 +81,7 @@ export const useNotificationStore = create<NotificationState>()(
       },
     }),
     {
-      name: "TailieuHue-notifications",
+      name: "tailieuhue-notifications-v2",
       storage: createJSONStorage(() => localStorage),
     }
   )

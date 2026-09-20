@@ -44,9 +44,10 @@ function CheckoutContent() {
       if (doc) {
         purchaseDocument(doc);
         addNotification({
-          title: "Mua tài liệu thành công",
-          message: `Bạn đã mua thành công tài liệu "${doc.title}". Kiểm tra trong mục Đã mua.`,
+          title: "Mua tài liệu thành công!",
+          message: `Bạn đã mở khóa thành công tài liệu "${doc.title}". Nhấp để xem link Google Drive.`,
           type: "purchase",
+          link: "/dashboard/da-mua",
         });
       }
       setSuccess(true);

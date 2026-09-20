@@ -12,21 +12,22 @@ import {
   GraduationCap,
   ExternalLink,
 } from "lucide-react";
-import { mockDocuments, mockPosts } from "@/lib/data/mock";
 import { useAuthStore } from "@/lib/store/auth";
 import { useLibraryStore } from "@/lib/store/libraryStore";
+import { useDocumentStore } from "@/lib/store/documentStore";
 
 export default function DashboardPage() {
   const { currentUser, isAdmin } = useAuthStore();
   const { purchasedDocs, savedDocIds } = useLibraryStore();
+  const { documents } = useDocumentStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const recentDocs = mockDocuments.slice(0, 3);
-  const recentPosts = mockPosts;
+  const recentDocs = documents.slice(0, 3);
+  const examDocs = documents.filter((d) => d.type === "de-thi" || d.isPro).slice(0, 3);
 
   const displayName = currentUser?.name || "Bạn";
   const displayEmail = currentUser?.email || "sinhvien@hce.edu.vn";
@@ -47,10 +48,10 @@ export default function DashboardPage() {
       color: "text-amber-600 bg-amber-50",
     },
     {
-      label: "Bài thảo luận",
-      value: `${mockPosts.length}`,
+      label: "Tài liệu hệ thống",
+      value: mounted ? `${documents.length}` : "0",
       icon: FileText,
-      href: "/dashboard/bai-viet",
+      href: "/tai-lieu",
       color: "text-emerald-600 bg-emerald-50",
     },
     {
@@ -191,33 +192,33 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Bài viết cộng đồng */}
+        {/* Đề thi & Tài liệu trọng tâm */}
         <div className="bg-white border border-slate-200 rounded-[16px] p-5 shadow-xs">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-              <FileText className="w-4 h-4 text-slate-400" />
-              Bài thảo luận cộng đồng
+              <FileText className="w-4 h-4 text-amber-500" />
+              Đề thi & Tài liệu ôn tập trọng tâm
             </h2>
             <Link
-              href="/community"
+              href="/tai-lieu/de-thi"
               className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
             >
               Xem tất cả <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
           <div className="space-y-3">
-            {recentPosts.map((post) => (
+            {examDocs.map((doc) => (
               <Link
-                key={post.id}
-                href={`/community/${post.slug}`}
-                className="flex items-start gap-3 p-3 bg-slate-50 rounded-[10px] hover:bg-blue-50/60 transition-colors"
+                key={doc.id}
+                href={`/tai-lieu/${doc.slug}`}
+                className="flex items-center gap-3 p-3 bg-slate-50 rounded-[10px] hover:bg-blue-50/60 transition-colors"
               >
+                <div className="w-10 h-10 bg-amber-100 text-amber-700 rounded-[8px] flex items-center justify-center shrink-0 font-bold text-xs">
+                  PRO
+                </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-slate-900 truncate">{post.title}</p>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
-                    <span>{post.likes} lượt thích</span>
-                    <span>{post.comments} bình luận</span>
-                  </div>
+                  <p className="text-sm font-semibold text-slate-900 truncate">{doc.title}</p>
+                  <p className="text-xs text-slate-500">{doc.subject} • {doc.pages} trang</p>
                 </div>
               </Link>
             ))}

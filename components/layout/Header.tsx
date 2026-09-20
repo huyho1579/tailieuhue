@@ -21,6 +21,7 @@ import { useNotificationStore } from "@/lib/store/notificationStore";
 import { signOut } from "@/lib/supabase/client";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { StudyTimer } from "@/components/shared/StudyTimer";
+import { NotificationDropdown } from "@/components/shared/NotificationDropdown";
 
 const NAV_LINKS = [
   { label: "Tài liệu", href: "/tai-lieu", icon: BookOpen },
@@ -96,18 +97,8 @@ export function Header() {
           {/* Nút chuyển đổi Sáng / Tối / Theo hệ thống */}
           <ThemeToggle />
 
-          {/* Notification bell */}
-          <button
-            title="Thông báo"
-            className="relative w-8 h-8 flex items-center justify-center rounded-[8px] text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            <Bell className="w-4 h-4" />
-            {mounted && unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </button>
+          {/* Notification dropdown */}
+          <NotificationDropdown />
 
           {/* User Profile / Admin Controls */}
           {mounted && currentUser ? (
@@ -258,6 +249,9 @@ export function Header() {
           </div>
         </div>
       )}
+
+      {/* Accent strip: Blue & Gold */}
+      <div className="h-[2px] w-full bg-gradient-to-r from-blue-600 via-amber-400 to-indigo-600 absolute bottom-0 left-0 right-0" />
     </header>
   );
 }

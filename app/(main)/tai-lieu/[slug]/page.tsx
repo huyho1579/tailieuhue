@@ -67,7 +67,7 @@ export default function DocumentDetailPage({
       semester: "Học kỳ 1 • 2024–2025",
       lecturer: "Bộ môn chuyên ngành HCE",
       fileFormat: "Google Drive",
-      driveUrl: "https://drive.google.com/drive/folders/edudocs-hce-sample",
+      driveUrl: "https://drive.google.com/drive/folders/tailieuhue-hce-sample",
       coverTheme: "blue",
       highlights: [
         "Hệ thống hóa toàn bộ công thức và lý thuyết cốt lõi bám sát đề thi cuối kỳ.",
@@ -111,7 +111,7 @@ export default function DocumentDetailPage({
     ? GRADIENT_THEMES[doc.coverTheme]
     : GRADIENT_THEMES.blue;
 
-  const targetDriveLink = doc.driveUrl || "https://drive.google.com/drive/folders/edudocs-hce";
+  const targetDriveLink = doc.driveUrl || "https://drive.google.com/drive/folders/tailieuhue-hce";
 
   return (
     <div className="max-w-[1280px] mx-auto px-4 py-8 animate-fade-in">

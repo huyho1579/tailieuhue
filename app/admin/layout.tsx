@@ -23,7 +23,6 @@ import { useAuthStore, ADMIN_CREDENTIALS } from "@/lib/store/auth";
 const ADMIN_MENU = [
   { label: "Tổng quan Quản trị", href: "/admin", icon: BarChart3 },
   { label: "Quản lý tài liệu HCE", href: "/admin/tai-lieu", icon: FileText },
-  { label: "Quản lý bài viết cộng đồng", href: "/admin/bai-viet", icon: MessageSquare },
   { label: "Quản lý người dùng", href: "/admin/nguoi-dung", icon: Users },
 ];
 

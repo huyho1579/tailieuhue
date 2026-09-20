@@ -1,13 +1,12 @@
 "use client";
 import Link from "next/link";
-import { Star, Eye, Download, FileText, ArrowRight } from "lucide-react";
+import { Star, Eye, Download, FileText, ArrowRight, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
-import { Badge } from "@/components/shared/Badge";
 import { formatPrice } from "@/lib/utils/format";
 import type { Document } from "@/lib/data/mock";
 
 interface DocumentCardProps {
-  doc: Document & { coverImage?: string; coverTheme?: string };
+  doc: Document & { coverImage?: string; coverTheme?: string; department?: string };
   className?: string;
 }
 
@@ -18,122 +17,123 @@ const TYPE_LABELS: Record<Document["type"], string> = {
   "giao-trinh": "Giáo trình",
 };
 
-const TYPE_COLORS: Record<Document["type"], string> = {
-  "de-cuong": "text-blue-600 bg-blue-50 border border-blue-100",
-  "de-thi": "text-purple-600 bg-purple-50 border border-purple-100",
-  slide: "text-emerald-600 bg-emerald-50 border border-emerald-100",
-  "giao-trinh": "text-amber-600 bg-amber-50 border border-amber-100",
-};
-
 export function DocumentCard({ doc, className }: DocumentCardProps) {
   const coverUrl = doc.coverImage || doc.thumbnail;
+  const isFree = !doc.isPro || doc.price === 0;
 
   return (
-    <Link
-      href={`/tai-lieu/${doc.slug}`}
+    <div
       className={cn(
-        "group flex flex-col bg-white border border-slate-200 rounded-[16px] overflow-hidden",
-        "hover:border-blue-300 hover:shadow-[0_8px_30px_rgba(15,23,42,0.08)]",
-        "transition-all duration-200 hover:-translate-y-0.5",
+        "group relative flex flex-col bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-[20px] overflow-hidden shadow-xs",
+        "hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-[0_12px_32px_rgba(30,64,175,0.08)] dark:hover:shadow-[0_12px_32px_rgba(0,0,0,0.4)]",
+        "transition-all duration-300 hover:-translate-y-1",
         className
       )}
     >
-      {/* Thumbnail / Ảnh nền bìa */}
-      <div className="relative h-40 bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100 flex items-center justify-center overflow-hidden border-b border-slate-100">
+      {/* Top Accent Line (Gold for PRO, Blue for Free) */}
+      <div
+        className={cn(
+          "h-1.5 w-full",
+          doc.isPro
+            ? "bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600"
+            : "bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500"
+        )}
+      />
+
+      {/* Card Header / Image or Visual Thumbnail */}
+      <div className="relative h-44 bg-gradient-to-br from-blue-50 via-slate-50 to-indigo-50/40 dark:from-slate-850 dark:via-slate-900 dark:to-blue-950/40 flex items-center justify-center overflow-hidden border-b border-slate-100 dark:border-slate-800">
         {coverUrl ? (
           <img
             src={coverUrl}
             alt={doc.title}
-            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90"
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="flex flex-col items-center gap-1.5 opacity-60 group-hover:opacity-80 transition-opacity">
-            <FileText className="w-12 h-12 text-blue-500" strokeWidth={1.5} />
-            <span className="text-xs text-slate-500 font-medium">{doc.pages} trang</span>
+          <div className="flex flex-col items-center gap-2 text-center px-4">
+            <div className="w-12 h-12 rounded-2xl bg-blue-100/80 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+              <FileText className="w-6 h-6" />
+            </div>
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-white/80 dark:bg-slate-800/80 px-2.5 py-0.5 rounded-full border border-slate-200/60 dark:border-slate-700">
+              {doc.pages} trang tài liệu
+            </span>
           </div>
         )}
 
-        {/* Overlay gradient nếu có ảnh */}
-        {coverUrl && (
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
-        )}
-
-        {/* Badge FREE / PRO */}
-        <div className="absolute top-3 left-3 flex gap-1.5 z-10">
-          <Badge variant={doc.isPro ? "pro" : "free"}>
-            {doc.isPro ? "PRO" : "MIỄN PHÍ"}
-          </Badge>
-        </div>
-
-        {/* Type Badge */}
-        <div className="absolute top-3 right-3 z-10">
-          <span
-            className={cn(
-              "text-[11px] font-semibold px-2.5 py-0.5 rounded-full shadow-xs backdrop-blur-xs",
-              coverUrl ? "bg-white/90 text-slate-900" : TYPE_COLORS[doc.type]
-            )}
-          >
-            {TYPE_LABELS[doc.type]}
-          </span>
-        </div>
-
-        {/* Số trang góc dưới nếu có ảnh */}
-        {coverUrl && (
-          <div className="absolute bottom-2.5 left-3 z-10 text-[11px] text-white/90 font-medium drop-shadow-xs">
-            {doc.pages} trang
-          </div>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="flex flex-col flex-1 p-4 gap-2">
-        <h3 className="font-semibold text-slate-900 text-sm leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors">
-          {doc.title}
-        </h3>
-
-        <div className="text-xs text-slate-500 space-y-0.5">
-          <div className="font-medium text-slate-700">{doc.subject}</div>
-          <div className="text-blue-600 font-medium">Đại học Kinh tế Huế</div>
-        </div>
-
-        {/* Stats thực tế - không ảo */}
-        <div className="flex items-center gap-3 text-xs text-slate-500 mt-auto pt-2 border-t border-slate-100">
-          {doc.rating > 0 ? (
-            <span className="flex items-center gap-1">
-              <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-              <span className="font-medium text-slate-700">{doc.rating}</span>
+        {/* Badges: PRO/FREE and Type */}
+        <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">
+          {doc.isPro ? (
+            <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 shadow-sm">
+              <ShieldCheck className="w-3 h-3" />
+              PRO
             </span>
           ) : (
-            <span className="text-slate-400 italic text-[11px]">Chưa có đánh giá</span>
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-500 text-white shadow-sm">
+              MIỄN PHÍ
+            </span>
           )}
-
-          <span className="flex items-center gap-1 ml-auto">
-            <Eye className="w-3.5 h-3.5 text-slate-400" />
-            <span>{doc.viewCount} lượt xem</span>
-          </span>
-
-          <span className="flex items-center gap-1">
-            <Download className="w-3.5 h-3.5 text-slate-400" />
-            <span>{doc.downloadCount}</span>
-          </span>
         </div>
 
-        {/* Price & Action */}
-        <div className="flex items-center justify-between pt-2 border-t border-slate-100 mt-1">
-          <span
-            className={cn(
-              "font-bold text-sm",
-              doc.isPro ? "text-slate-900" : "text-emerald-600"
-            )}
-          >
-            {formatPrice(doc.price)}
-          </span>
-          <span className="flex items-center gap-1 text-xs font-semibold text-blue-600 group-hover:gap-1.5 transition-all">
-            Xem tài liệu
-            <ArrowRight className="w-3.5 h-3.5" />
+        <div className="absolute top-3 right-3 z-10">
+          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-white/95 dark:bg-slate-800/95 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 shadow-xs backdrop-blur-sm">
+            {TYPE_LABELS[doc.type] || "Tài liệu"}
           </span>
         </div>
       </div>
-    </Link>
+
+      {/* Content Body */}
+      <div className="flex flex-col flex-1 p-5 gap-3">
+        {/* Subject & Dept Tags */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900/60">
+            {doc.subject}
+          </span>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400">
+            ĐH Kinh tế Huế
+          </span>
+        </div>
+
+        {/* Title */}
+        <Link
+          href={`/tai-lieu/${doc.slug}`}
+          className="font-bold text-slate-900 dark:text-white text-base leading-snug line-clamp-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+        >
+          {doc.title}
+        </Link>
+
+        {/* Short info */}
+        <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-auto pt-2 border-t border-slate-100 dark:border-slate-800/80">
+          <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
+            <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+            {doc.rating > 0 ? doc.rating.toFixed(1) : "5.0"}
+          </span>
+          <span>•</span>
+          <span className="flex items-center gap-1">
+            <Eye className="w-3.5 h-3.5 text-slate-400" />
+            {doc.viewCount || 0} lượt xem
+          </span>
+          <span className="ml-auto font-bold text-xs">
+            {isFree ? (
+              <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">0đ</span>
+            ) : (
+              <span className="text-blue-700 dark:text-blue-400 font-extrabold">{formatPrice(doc.price)}</span>
+            )}
+          </span>
+        </div>
+
+        {/* Action Button - Yellow / Gold prominent button like in screenshot */}
+        <Link
+          href={`/tai-lieu/${doc.slug}`}
+          className={cn(
+            "w-full py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer",
+            doc.isPro
+              ? "bg-amber-400 hover:bg-amber-500 text-slate-950 shadow-amber-400/20 hover:shadow-md"
+              : "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20 hover:shadow-md"
+          )}
+        >
+          <span>Xem tài liệu</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
+      </div>
+    </div>
   );
 }

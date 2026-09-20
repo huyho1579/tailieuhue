@@ -43,11 +43,11 @@ function FilterSection({
 }) {
   const [open, setOpen] = useState(true);
   return (
-    <div className="border-b border-slate-100 pb-4 mb-4 last:border-0 last:mb-0 last:pb-0">
+    <div className="border-b border-slate-100 dark:border-slate-800 pb-4 mb-4 last:border-0 last:mb-0 last:pb-0">
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center justify-between w-full mb-3 text-sm font-semibold text-slate-900 text-left cursor-pointer"
+        className="flex items-center justify-between w-full mb-3 text-sm font-semibold text-slate-900 dark:text-white text-left cursor-pointer"
       >
         <span>{title}</span>
         {open ? (
@@ -116,14 +116,14 @@ export function DocumentFilter({
   };
 
   return (
-    <aside className="w-full bg-white border border-slate-200 rounded-[16px] p-5 shadow-xs">
-      <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
-        <span className="font-bold text-slate-900 text-sm">Bộ lọc tìm kiếm</span>
+    <aside className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[20px] p-5 shadow-xs">
+      <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100 dark:border-slate-800">
+        <span className="font-bold text-slate-900 dark:text-white text-sm">Bộ lọc tìm kiếm</span>
         {hasFilters && (
           <button
             type="button"
             onClick={clearAll}
-            className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 cursor-pointer"
+            className="flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 cursor-pointer"
           >
             <X className="w-3.5 h-3.5" /> Xóa tất cả
           </button>
@@ -131,10 +131,10 @@ export function DocumentFilter({
       </div>
 
       {/* Trường cố định: ĐH Kinh tế Huế */}
-      <div className="mb-4 p-3 bg-blue-50/70 border border-blue-100 rounded-[10px]">
-        <span className="text-xs text-slate-500 font-medium block">Trường đại học:</span>
-        <span className="text-sm font-bold text-blue-800 flex items-center gap-1.5 mt-0.5">
-          <Check className="w-4 h-4 text-blue-600" />
+      <div className="mb-4 p-3 bg-blue-50/70 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/60 rounded-[12px]">
+        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium block">Trường đại học:</span>
+        <span className="text-sm font-bold text-blue-800 dark:text-blue-300 flex items-center gap-1.5 mt-0.5">
+          <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           Đại học Kinh tế Huế
         </span>
       </div>
@@ -150,9 +150,9 @@ export function DocumentFilter({
                 type="checkbox"
                 checked={activeFilters.types.includes(t.id)}
                 onChange={() => toggleType(t.id)}
-                className="w-4 h-4 rounded border-slate-300 text-blue-600 accent-blue-600 cursor-pointer"
+                className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-blue-600 accent-blue-600 cursor-pointer"
               />
-              <span className="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">
+              <span className="text-sm text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
                 {t.label}
               </span>
             </label>
@@ -171,9 +171,9 @@ export function DocumentFilter({
                 type="checkbox"
                 checked={activeFilters.departments.includes(dept)}
                 onChange={() => toggleDepartment(dept)}
-                className="w-4 h-4 rounded border-slate-300 text-blue-600 accent-blue-600 cursor-pointer"
+                className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-blue-600 accent-blue-600 cursor-pointer"
               />
-              <span className="text-xs text-slate-600 group-hover:text-slate-900 leading-snug transition-colors">
+              <span className="text-xs text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white leading-snug transition-colors">
                 {dept}
               </span>
             </label>
@@ -193,9 +193,9 @@ export function DocumentFilter({
                 name={radioGroupId}
                 checked={activeFilters.priceFilter === p.id}
                 onChange={() => setPrice(p.id)}
-                className="w-4 h-4 border-slate-300 text-blue-600 accent-blue-600 cursor-pointer"
+                className="w-4 h-4 border-slate-300 dark:border-slate-600 text-blue-600 accent-blue-600 cursor-pointer"
               />
-              <span className="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">
+              <span className="text-sm text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
                 {p.label}
               </span>
             </label>

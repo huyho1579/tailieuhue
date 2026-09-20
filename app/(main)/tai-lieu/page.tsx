@@ -101,21 +101,21 @@ export default function TaiLieuPage() {
   return (
     <div className="max-w-[1280px] mx-auto px-4 py-8 animate-fade-in">
       {/* Breadcrumb & Admin Action */}
-      <nav className="text-xs text-slate-500 mb-6 flex items-center justify-between flex-wrap gap-3">
+      <nav className="text-xs text-slate-500 dark:text-slate-400 mb-6 flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2">
-          <Link href="/" className="hover:text-slate-700">
+          <Link href="/" className="hover:text-slate-700 dark:hover:text-slate-200">
             Trang chủ
           </Link>
-          <span className="text-slate-300">/</span>
-          <span className="text-slate-900 font-semibold">Kho tài liệu ĐH Kinh tế Huế</span>
+          <span className="text-slate-300 dark:text-slate-600">/</span>
+          <span className="text-slate-900 dark:text-slate-100 font-semibold">Kho tài liệu ĐH Kinh tế Huế</span>
         </div>
 
         <div className="flex items-center gap-2">
           <Link
             href="/mon-hoc"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-[8px] transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold rounded-[8px] transition-colors"
           >
-            <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
+            <GraduationCap className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             Chuyên trang Môn học
           </Link>
 
@@ -143,12 +143,12 @@ export default function TaiLieuPage() {
           {/* Header */}
           <div className="flex items-center justify-between mb-5 flex-wrap gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-slate-950">
+              <h1 className="text-2xl font-bold text-slate-950 dark:text-white">
                 Kho tài liệu học tập
               </h1>
-              <p className="text-sm text-slate-500 mt-0.5">
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
                 Tìm thấy{" "}
-                <span className="font-bold text-slate-900">{filteredAndSortedDocs.length}</span> tài
+                <span className="font-bold text-slate-900 dark:text-white">{filteredAndSortedDocs.length}</span> tài
                 liệu phù hợp tiêu chuẩn ĐH Kinh tế Huế
               </p>
             </div>
@@ -157,7 +157,7 @@ export default function TaiLieuPage() {
               {/* Mobile filter toggle */}
               <button
                 onClick={() => setShowMobileFilter(true)}
-                className="lg:hidden flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-[10px] text-sm font-medium text-slate-700 hover:border-blue-300 shadow-xs cursor-pointer"
+                className="lg:hidden flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[10px] text-sm font-medium text-slate-700 dark:text-slate-200 hover:border-blue-300 shadow-xs cursor-pointer"
               >
                 <SlidersHorizontal className="w-4 h-4" />
                 Bộ lọc {hasActiveFilters && <span className="w-2 h-2 rounded-full bg-blue-600" />}
@@ -168,10 +168,10 @@ export default function TaiLieuPage() {
                 <select
                   value={sort}
                   onChange={(e) => setSort(e.target.value)}
-                  className="appearance-none pl-3 pr-8 py-2 bg-white border border-slate-200 rounded-[10px] text-sm font-semibold text-slate-700 cursor-pointer focus:outline-none focus:border-blue-400 shadow-xs"
+                  className="appearance-none pl-3 pr-8 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[10px] text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer focus:outline-none focus:border-blue-400 shadow-xs"
                 >
                   {SORT_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
+                    <option key={opt.value} value={opt.value} className="dark:bg-slate-800">
                       {opt.label}
                     </option>
                   ))}
