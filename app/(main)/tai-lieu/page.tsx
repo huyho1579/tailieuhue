@@ -1,7 +1,6 @@
 "use client";
-import { useState, useMemo, useEffect, Suspense } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import {
   SlidersHorizontal,
   ArrowUpDown,
@@ -31,16 +30,13 @@ const SORT_OPTIONS = [
   { value: "pages", label: "Số trang nhiều nhất" },
 ];
 
-function TaiLieuContent() {
+export default function TaiLieuPage() {
   const { documents } = useDocumentStore();
   const { isAdmin } = useAuthStore();
-  const searchParams = useSearchParams();
-  const querySubject = searchParams.get("subject");
 
   const [mounted, setMounted] = useState(false);
   const [sort, setSort] = useState("newest");
   const [showMobileFilter, setShowMobileFilter] = useState(false);
-  const [selectedSubject, setSelectedSubject] = useState<string>("all");
 
   const [filters, setFilters] = useState<FilterState>({
     types: [],
@@ -50,30 +46,11 @@ function TaiLieuContent() {
 
   useEffect(() => {
     setMounted(true);
-    if (querySubject) {
-      setSelectedSubject(querySubject);
-    }
-  }, [querySubject]);
+  }, []);
 
-  // 1. Tự động trích xuất danh sách tất cả các môn học có trong kho tài liệu
-  const availableSubjects = useMemo(() => {
-    const set = new Set<string>();
-    documents.forEach((d) => {
-      if (d.subject) set.add(d.subject.trim());
-    });
-    return Array.from(set);
-  }, [documents]);
-
-  // 2. XỬ LÝ LỌC THỜI GIAN THỰC (ĐỒNG BỘ CẢ MÔN HỌC & TÀI LIỆU)
+  // XỬ LÝ LỌC THỜI GIAN THỰC
   const filteredAndSortedDocs = useMemo(() => {
     let result = [...documents];
-
-    // Lọc theo Môn học được chọn
-    if (selectedSubject !== "all") {
-      result = result.filter(
-        (d) => d.subject.toLowerCase().trim() === selectedSubject.toLowerCase().trim()
-      );
-    }
 
     // Lọc theo Loại tài liệu (Đề cương, Đề thi, Slide, Giáo trình)
     if (filters.types.length > 0) {
@@ -110,16 +87,14 @@ function TaiLieuContent() {
     });
 
     return result;
-  }, [documents, selectedSubject, filters, sort]);
+  }, [documents, filters, sort]);
 
   const hasActiveFilters =
-    selectedSubject !== "all" ||
     filters.types.length > 0 ||
     filters.departments.length > 0 ||
     filters.priceFilter !== "all";
 
   const clearAllFilters = () => {
-    setSelectedSubject("all");
     setFilters({ types: [], departments: [], priceFilter: "all" });
   };
 
@@ -155,68 +130,6 @@ function TaiLieuContent() {
         </div>
       </nav>
 
-      {/* Quick Subject Filter Pill Bar - Đồng bộ tức thời với Môn học */}
-      <div className="mb-6 p-3 bg-white border border-slate-200 rounded-[16px] shadow-xs">
-        <div className="flex items-center justify-between mb-2 px-1">
-          <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-            <GraduationCap className="w-4 h-4 text-blue-600" />
-            Lọc nhanh theo Môn học ({availableSubjects.length} môn):
-          </span>
-          <Link
-            href="/mon-hoc"
-            className="text-[11px] font-bold text-blue-600 hover:underline flex items-center gap-0.5"
-          >
-            Xem tất cả môn học <ChevronRight className="w-3 h-3" />
-          </Link>
-        </div>
-
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-          <button
-            type="button"
-            onClick={() => setSelectedSubject("all")}
-            className={cn(
-              "px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer",
-              selectedSubject === "all"
-                ? "bg-blue-600 text-white shadow-2xs"
-                : "bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200"
-            )}
-          >
-            Tất cả môn ({documents.length})
-          </button>
-
-          {availableSubjects.map((sub) => {
-            const count = documents.filter(
-              (d) => d.subject.toLowerCase().trim() === sub.toLowerCase().trim()
-            ).length;
-            const isSelected = selectedSubject.toLowerCase().trim() === sub.toLowerCase().trim();
-
-            return (
-              <button
-                key={sub}
-                type="button"
-                onClick={() => setSelectedSubject(sub)}
-                className={cn(
-                  "px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5",
-                  isSelected
-                    ? "bg-blue-600 text-white shadow-2xs"
-                    : "bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200"
-                )}
-              >
-                <span>{sub}</span>
-                <span
-                  className={cn(
-                    "text-[10px] px-1.5 py-0.2 rounded-full font-bold",
-                    isSelected ? "bg-white/20 text-white" : "bg-blue-100 text-blue-700"
-                  )}
-                >
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       <div className="flex items-start gap-8">
         {/* Sidebar filter - Desktop */}
         <aside className="hidden lg:block w-68 shrink-0">
@@ -231,7 +144,7 @@ function TaiLieuContent() {
           <div className="flex items-center justify-between mb-5 flex-wrap gap-4">
             <div>
               <h1 className="text-2xl font-bold text-slate-950">
-                {selectedSubject === "all" ? "Kho tài liệu học tập" : `Tài liệu môn: ${selectedSubject}`}
+                Kho tài liệu học tập
               </h1>
               <p className="text-sm text-slate-500 mt-0.5">
                 Tìm thấy{" "}
@@ -272,19 +185,6 @@ function TaiLieuContent() {
           {hasActiveFilters && (
             <div className="flex items-center gap-2 flex-wrap mb-5 p-3 bg-blue-50/50 border border-blue-100 rounded-[12px]">
               <span className="text-xs font-bold text-slate-600">Đang lọc:</span>
-
-              {selectedSubject !== "all" && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-600 text-white rounded-full text-xs font-semibold shadow-2xs">
-                  Môn: {selectedSubject}
-                  <button
-                    type="button"
-                    onClick={() => setSelectedSubject("all")}
-                    className="hover:text-red-200 cursor-pointer"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              )}
 
               {filters.types.map((t) => {
                 const label = TYPES.find((item) => item.id === t)?.label || t;
@@ -370,8 +270,7 @@ function TaiLieuContent() {
                 Không tìm thấy tài liệu nào
               </h3>
               <p className="text-xs text-slate-500 mb-5 leading-relaxed">
-                Không có tài liệu nào phù hợp với bộ lọc hiện tại của bạn. Thử xóa bớt điều kiện lọc
-                hoặc chọn môn học khác.
+                Không có tài liệu nào phù hợp với bộ lọc hiện tại của bạn. Thử xóa bớt điều kiện lọc.
               </p>
               <button
                 type="button"
@@ -428,13 +327,5 @@ function TaiLieuContent() {
         </div>
       )}
     </div>
-  );
-}
-
-export default function TaiLieuPage() {
-  return (
-    <Suspense fallback={<div className="max-w-[1280px] mx-auto p-8 animate-pulse">Đang tải...</div>}>
-      <TaiLieuContent />
-    </Suspense>
   );
 }

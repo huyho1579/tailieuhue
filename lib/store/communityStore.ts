@@ -61,23 +61,15 @@ export const useCommunityStore = create<CommunityStoreState>()(
           const { deletedPostIds, posts } = get();
 
           if (supabasePosts && supabasePosts.length > 0) {
-            // Loại bỏ hoàn toàn những bài đã bị xóa (cả theo id và slug)
-            const filteredSupabase = supabasePosts.filter(
-              (p) => !deletedPostIds.includes(p.id) && !deletedPostIds.includes(p.slug)
-            );
-
-            // Giữ lại các bài viết mới đăng cục bộ chưa kịp ghi lên Supabase
+            // Supabase là nguồn sự thật — ghi đè hoàn toàn bài viết từ Supabase
+            // Chỉ giữ lại những bài viết local mà CHƯA CÓ trên Supabase (vd: vừa tạo offline)
             const existingLocalOnly = posts.filter(
-              (lp) =>
-                !deletedPostIds.includes(lp.id) &&
-                !deletedPostIds.includes(lp.slug) &&
-                !filteredSupabase.some((sp) => sp.id === lp.id || sp.slug === lp.slug)
+              (lp) => !supabasePosts.some((sp) => sp.id === lp.id || sp.slug === lp.slug)
             );
 
-            // Kết hợp bài từ Supabase và bài cục bộ chưa đồng bộ
-            set({ posts: [...existingLocalOnly, ...filteredSupabase] });
+            set({ posts: [...existingLocalOnly, ...supabasePosts] });
           } else {
-            // Lọc lại bài cục bộ theo blacklist đã xóa
+            // Lọc lại bài cục bộ theo blacklist đã xóa nếu Supabase chưa có gì (fallback)
             set({
               posts: posts.filter(
                 (p) => !deletedPostIds.includes(p.id) && !deletedPostIds.includes(p.slug)
@@ -179,20 +171,25 @@ export const useCommunityStore = create<CommunityStoreState>()(
         const { posts, deletedPostIds } = get();
         const targetPost = posts.find((p) => p.id === id);
 
-        // Lưu cả id và slug vào danh sách đã xóa để Supabase không thể phục hồi lại bài
+        // Lưu cả id và slug vào danh sách đã xóa để fallback không hiện lại
         const newDeletedIds = new Set(deletedPostIds);
         newDeletedIds.add(id);
         if (targetPost?.slug) {
           newDeletedIds.add(targetPost.slug);
         }
 
+        // Cập nhật UI ngay lập tức
         set((state) => ({
           deletedPostIds: Array.from(newDeletedIds),
           posts: state.posts.filter((p) => p.id !== id && (!targetPost?.slug || p.slug !== targetPost.slug)),
           comments: state.comments.filter((c) => c.postId !== id),
         }));
 
-        db.deletePost(id).catch((err) => {
+        db.deletePost(id).then((success) => {
+          if (success) {
+            get().syncFromSupabase(); // Re-sync từ Supabase sau khi xoá thành công
+          }
+        }).catch((err) => {
           console.warn("Lỗi xóa bài viết trên Supabase:", err);
         });
       },
@@ -223,7 +220,7 @@ export const useCommunityStore = create<CommunityStoreState>()(
         };
 
         const { deletedPostIds } = get();
-        // Đảm bảo không bị vướng blacklist
+        // Cập nhật UI ngay lập tức
         set((state) => ({
           deletedPostIds: deletedPostIds.filter((id) => id !== newPost.id && id !== newPost.slug),
           posts: [newPost, ...state.posts],
@@ -233,6 +230,10 @@ export const useCommunityStore = create<CommunityStoreState>()(
         db.insertPost({
           ...newPost,
           authorEmail: postData.authorEmail || `${postData.author.username}@tailieuhue.com`,
+        }).then((success) => {
+          if (success) {
+            get().syncFromSupabase(); // Re-sync từ Supabase sau khi thêm thành công
+          }
         }).catch((err) => {
           console.warn("Lỗi tạo bài viết trên Supabase:", err);
         });

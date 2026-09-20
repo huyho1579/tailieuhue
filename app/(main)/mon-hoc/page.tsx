@@ -1,6 +1,7 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { LucideIcon } from "lucide-react";
 import {
   GraduationCap,
   BookOpen,
@@ -12,81 +13,99 @@ import {
   FileText,
   Check,
   Layers,
+  Megaphone,
+  BarChart3,
+  TrendingUp,
+  Globe,
+  Briefcase,
+  Banknote,
+  Scale,
+  Calculator,
+  PieChart,
+  Users,
 } from "lucide-react";
 import { DocumentCard } from "@/components/documents/DocumentCard";
 import { useDocumentStore } from "@/lib/store/documentStore";
 import { useAuthStore } from "@/lib/store/auth";
 import { cn } from "@/lib/utils/cn";
 
-const DEFAULT_SUBJECTS = [
+interface SubjectItem {
+  name: string;
+  code: string;
+  department: string;
+  icon: LucideIcon;
+  color: string;
+}
+
+const DEFAULT_SUBJECTS: SubjectItem[] = [
   {
     name: "Marketing Căn bản",
     code: "MKT101",
     department: "Khoa Quản trị kinh doanh",
-    icon: "📢",
+    icon: Megaphone,
     color: "from-blue-500 to-indigo-600",
   },
   {
     name: "Kế toán Tài chính",
     code: "ACC201",
     department: "Khoa Kế toán — Kiểm toán",
-    icon: "📊",
+    icon: BarChart3,
     color: "from-emerald-500 to-teal-600",
   },
   {
     name: "Kinh tế Vi mô",
     code: "ECO101",
     department: "Khoa Kinh tế & Phát triển",
-    icon: "📈",
+    icon: TrendingUp,
     color: "from-amber-500 to-orange-600",
   },
   {
     name: "Kinh tế Vĩ mô",
     code: "ECO102",
     department: "Khoa Kinh tế & Phát triển",
-    icon: "🌐",
+    icon: Globe,
     color: "from-sky-500 to-blue-600",
   },
   {
     name: "Quản trị Học",
     code: "MGT101",
     department: "Khoa Quản trị kinh doanh",
-    icon: "💼",
+    icon: Briefcase,
     color: "from-purple-500 to-indigo-600",
   },
   {
     name: "Tài chính Doanh nghiệp",
     code: "FIN201",
     department: "Khoa Tài chính — Ngân hàng",
-    icon: "💰",
+    icon: Banknote,
     color: "from-rose-500 to-pink-600",
   },
   {
     name: "Luật Kinh doanh",
     code: "LAW101",
     department: "Khoa Quản trị kinh doanh",
-    icon: "⚖️",
+    icon: Scale,
     color: "from-violet-500 to-purple-600",
   },
   {
     name: "Kinh tế Lượng",
     code: "ECO301",
     department: "Khoa Kinh tế & Phát triển",
-    icon: "🔢",
+    icon: Calculator,
     color: "from-teal-500 to-emerald-600",
   },
   {
     name: "Nguyên lý Thống kê kinh tế",
     code: "STA101",
     department: "Khoa Hệ thống thông tin kinh tế",
-    icon: "📉",
+    icon: PieChart,
     color: "from-cyan-500 to-blue-600",
   },
   {
     name: "Quản trị Nhân lực",
     code: "HRM201",
     department: "Khoa Quản trị kinh doanh",
-    icon: "👥",
+    icon: Users,
     color: "from-indigo-500 to-blue-700",
   },
 ];
@@ -129,7 +148,7 @@ export default function MonHocPage() {
             name: d.subject,
             code: `HCE-${map.size + 1}`,
             department: d.department || "Khoa Quản trị kinh doanh",
-            icon: "📚",
+            icon: BookOpen,
             color: "from-blue-600 to-indigo-700",
           });
         }
@@ -302,7 +321,7 @@ export default function MonHocPage() {
             )}
           >
             <div>
-              <span className="text-2xl mb-2 block">📚</span>
+              <Layers className="w-6 h-6 text-current mb-2" />
               <h3 className="font-bold text-sm leading-snug">Tất cả môn học</h3>
               <p
                 className={cn(
@@ -343,7 +362,7 @@ export default function MonHocPage() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-2xl">{s.icon}</span>
+                    <s.icon className="w-6 h-6" />
                     <span
                       className={cn(
                         "text-[10px] font-mono px-1.5 py-0.2 rounded font-semibold",

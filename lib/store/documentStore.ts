@@ -5,18 +5,19 @@ import { db } from "@/lib/supabase/db";
 
 // Mở rộng Document type với các trường chi tiết
 export interface DetailedDocument extends Document {
-  department?: string; // Khoa chuyên môn
-  semester?: string; // Học kỳ & Năm học
-  lecturer?: string; // Giảng viên phụ trách
-  fileFormat?: string; // PDF, PPTX, DOCX
-  driveUrl?: string; // Link Google Drive / Đám mây
-  coverImage?: string; // URL ảnh nền / bìa hoặc Data URL base64
-  coverTheme?: string; // Theme màu bìa
-  highlights?: string[]; // Các điểm trọng tâm ôn thi
+  department?: string;
+  semester?: string;
+  lecturer?: string;
+  fileFormat?: string;
+  driveUrl?: string;
+  coverImage?: string;
+  coverTheme?: string;
+  highlights?: string[];
 }
 
 interface DocumentStoreState {
   documents: DetailedDocument[];
+  isLoading: boolean;
   addDocument: (doc: Omit<DetailedDocument, "id" | "slug" | "uploadedAt" | "rating" | "reviewCount" | "viewCount" | "downloadCount">) => DetailedDocument;
   deleteDocument: (id: string) => void;
   getDocumentBySlug: (slug: string) => DetailedDocument | undefined;
@@ -28,11 +29,11 @@ const getInitialDepartment = (subject: string): string => {
   if (subject.includes("Kế toán")) return "Khoa Kế toán — Kiểm toán";
   if (subject.includes("Tài chính")) return "Khoa Tài chính — Ngân hàng";
   if (subject.includes("Vi mô") || subject.includes("Vĩ mô") || subject.includes("Kinh tế Lượng")) return "Khoa Kinh tế & Phát triển";
-  if (subject.includes("Tin học") || subject.includes("Hệ thống")) return "Khoa Hệ thống thông tin kinh tế";
+  if (subject.includes("Tin học") || subject.includes("Hệ thống") || subject.includes("Thống kê")) return "Khoa Hệ thống thông tin kinh tế";
   return "Khoa Quản trị kinh doanh";
 };
 
-// Khởi tạo dữ liệu gốc với link Drive và khoa chính xác
+// Khởi tạo dữ liệu gốc (fallback khi chưa kết nối Supabase)
 const INITIAL_DOCS: DetailedDocument[] = mockDocuments.map((doc, i) => ({
   ...doc,
   department: getInitialDepartment(doc.subject),
@@ -53,15 +54,27 @@ export const useDocumentStore = create<DocumentStoreState>()(
   persist(
     (set, get) => ({
       documents: INITIAL_DOCS,
+      isLoading: false,
 
       syncFromSupabase: async () => {
         try {
+          set({ isLoading: true });
           const supabaseDocs = await db.getDocuments();
+          
           if (supabaseDocs && supabaseDocs.length > 0) {
-            set({ documents: supabaseDocs });
+            // Supabase là nguồn dữ liệu chính thức — ghi đè hoàn toàn
+            set({ documents: supabaseDocs, isLoading: false });
+          } else {
+            // Supabase trống: đẩy dữ liệu INITIAL lên Supabase để đồng bộ lần đầu
+            const localDocs = get().documents;
+            for (const doc of localDocs) {
+              await db.insertDocument(doc).catch(() => {});
+            }
+            set({ isLoading: false });
           }
         } catch (e) {
           console.error("Lỗi đồng bộ tài liệu từ Supabase:", e);
+          set({ isLoading: false });
         }
       },
 
@@ -89,25 +102,36 @@ export const useDocumentStore = create<DocumentStoreState>()(
           driveUrl: newDocData.driveUrl || "https://drive.google.com/drive/folders/tailieuhue",
         };
 
+        // Cập nhật UI ngay lập tức (optimistic)
         set((state) => ({
           documents: [newDoc, ...state.documents],
         }));
 
-        // Đồng bộ lên Supabase ngầm
-        db.insertDocument(newDoc).catch((err) => {
-          console.warn("Chưa đồng bộ được lên Supabase (bảng documents chưa được tạo):", err);
+        // Đồng bộ lên Supabase và re-sync
+        db.insertDocument(newDoc).then((success) => {
+          if (success) {
+            // Re-sync để đảm bảo tất cả client đều thấy
+            get().syncFromSupabase();
+          }
+        }).catch((err) => {
+          console.warn("Chưa đồng bộ được lên Supabase:", err);
         });
 
         return newDoc;
       },
 
       deleteDocument: (id: string) => {
+        // Cập nhật UI ngay lập tức (optimistic)
         set((state) => ({
           documents: state.documents.filter((d) => d.id !== id),
         }));
 
-        // Xóa trên Supabase ngầm
-        db.deleteDocument(id).catch((err) => {
+        // Xóa trên Supabase và re-sync
+        db.deleteDocument(id).then((success) => {
+          if (success) {
+            get().syncFromSupabase();
+          }
+        }).catch((err) => {
           console.warn("Lỗi khi xóa trên Supabase:", err);
         });
       },
