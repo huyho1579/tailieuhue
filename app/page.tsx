@@ -3,7 +3,6 @@ import { useMemo } from "react";
 import { Hero } from "@/components/home/Hero";
 import { CategoryGrid } from "@/components/home/CategoryGrid";
 import { FeaturedDocs } from "@/components/home/FeaturedDocs";
-import { CommunityPreview } from "@/components/home/CommunityPreview";
 import { ProBanner } from "@/components/home/ProBanner";
 import { useDocumentStore } from "@/lib/store/documentStore";
 
@@ -34,7 +33,6 @@ export default function HomePage() {
         docs={deThiDocs}
         viewAllHref="/tai-lieu"
       />
-      <CommunityPreview />
       <ProBanner />
     </div>
   );

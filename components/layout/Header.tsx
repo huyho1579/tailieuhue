@@ -7,7 +7,6 @@ import {
   FileText,
   MessageCircle,
   Sparkles,
-  Search,
   Bell,
   Menu,
   X,
@@ -18,6 +17,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
+import { useNotificationStore } from "@/lib/store/notificationStore";
 import { signOut } from "@/lib/supabase/client";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { StudyTimer } from "@/components/shared/StudyTimer";
@@ -25,16 +25,15 @@ import { StudyTimer } from "@/components/shared/StudyTimer";
 const NAV_LINKS = [
   { label: "Tài liệu", href: "/tai-lieu", icon: BookOpen },
   { label: "Môn học", href: "/mon-hoc", icon: GraduationCap },
-  { label: "Cộng đồng", href: "/community", icon: MessageCircle },
   { label: "AI Học tập", href: "#", icon: Sparkles, badge: "Sắp ra mắt" },
 ];
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   const { currentUser, isAdmin, logoutUser } = useAuthStore();
+  const unreadCount = useNotificationStore((s) => s.unreadCount());
 
   useEffect(() => {
     setMounted(true);
@@ -97,21 +96,17 @@ export function Header() {
           {/* Nút chuyển đổi Sáng / Tối / Theo hệ thống */}
           <ThemeToggle />
 
-          {/* Search trigger button */}
-          <button
-            onClick={() => setSearchOpen(true)}
-            className="hidden xl:flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-[10px] text-sm text-slate-500 dark:text-slate-400 hover:border-blue-300 hover:bg-blue-50/50 dark:hover:bg-slate-800 transition-colors min-w-[150px]"
-          >
-            <Search className="w-3.5 h-3.5 shrink-0 text-slate-400" />
-            <span className="text-xs">Tìm kiếm tài liệu...</span>
-          </button>
-
           {/* Notification bell */}
           <button
             title="Thông báo"
-            className="w-8 h-8 flex items-center justify-center rounded-[8px] text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="relative w-8 h-8 flex items-center justify-center rounded-[8px] text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             <Bell className="w-4 h-4" />
+            {mounted && unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </button>
 
           {/* User Profile / Admin Controls */}

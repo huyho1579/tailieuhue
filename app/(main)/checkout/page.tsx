@@ -5,6 +5,7 @@ import { ShoppingCart, Lock, CreditCard, Smartphone, Check, ExternalLink, ArrowR
 import Link from "next/link";
 import { useDocumentStore } from "@/lib/store/documentStore";
 import { useLibraryStore } from "@/lib/store/libraryStore";
+import { useNotificationStore } from "@/lib/store/notificationStore";
 import { formatPrice } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 
@@ -19,6 +20,7 @@ function CheckoutContent() {
 
   const { documents } = useDocumentStore();
   const { purchaseDocument } = useLibraryStore();
+  const addNotification = useNotificationStore((s) => s.addNotification);
 
   const [method, setMethod] = useState("vnpay");
   const [loading, setLoading] = useState(false);
@@ -41,6 +43,11 @@ function CheckoutContent() {
       // Tự động lưu tài liệu vào danh sách đã mua trong Trang cá nhân
       if (doc) {
         purchaseDocument(doc);
+        addNotification({
+          title: "Mua tài liệu thành công",
+          message: `Bạn đã mua thành công tài liệu "${doc.title}". Kiểm tra trong mục Đã mua.`,
+          type: "purchase",
+        });
       }
       setSuccess(true);
       setLoading(false);

@@ -93,14 +93,20 @@ export const useAuthStore = create<AuthState>()(
       loginAdmin: (email: string, pass: string) => {
         const cleanEmail = email.trim().toLowerCase();
         if (cleanEmail === ADMIN_CREDENTIALS.email && pass === ADMIN_CREDENTIALS.password) {
+          // Lấy thông tin đã chỉnh sửa từ registeredUsers (nếu có)
+          const users = get().registeredUsers && get().registeredUsers.length > 0
+            ? get().registeredUsers
+            : INITIAL_REGISTERED_USERS;
+          const savedAdmin = users.find((u) => u.email.trim().toLowerCase() === ADMIN_CREDENTIALS.email);
+
           const adminUser: User = {
-            id: "admin-huyho",
-            name: "Hồ Huy",
+            id: savedAdmin?.id || "admin-huyho",
+            name: savedAdmin?.name || "Hồ Huy",
             email: "huyho1579@gmail.com",
-            username: "huyho",
+            username: savedAdmin?.username || "huyho",
             role: "admin",
-            university: "Đại học Kinh tế Huế",
-            points: 0,
+            university: savedAdmin?.university || "Đại học Kinh tế Huế",
+            points: savedAdmin?.points || 0,
             isPro: true,
           };
           set({
